@@ -2,6 +2,7 @@ package com.github.beenotung.musicplayer;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -103,7 +104,7 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.nav_folder) {
             setTitle(R.string.folder);
             containerId = R.id.container_folder;
-            container = new FolderContainer(findViewById(containerId));
+            container = new FolderContainer(findViewById(R.id.container_folder));
         } else if (id == R.id.nav_player) {
             setTitle(R.string.player);
         } else if (id == R.id.nav_settings) {
@@ -191,12 +192,13 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    ArrayList<Folder> folders = new ArrayList<>();
 
     class FolderContainer extends Container {
         ListView listView;
+        ArrayList<Folder> folders = new ArrayList<>();
         private SharedPreferences folderSharedPreferences;
         private final LayoutInflater mInflater;
+        private Drawable oriDrawable;
 
         class FolderAdapter extends BaseAdapter {
 
@@ -237,7 +239,7 @@ public class MainActivity extends AppCompatActivity
 
         public FolderContainer(View view) {
             super(view);
-            listView = (ListView) findViewById(R.id.folder_list);
+            listView = (ListView) view.findViewById(R.id.container_folder);
             if (listView == null) {
                 throw new IllegalStateException("folder list view not found");
             }
@@ -250,6 +252,13 @@ public class MainActivity extends AppCompatActivity
         @Override
         void onEnter() {
             super.onEnter();
+            oriDrawable = fab.getDrawable();
+            fab.setImageDrawable(getDrawable(android.R.drawable.checkbox_on_background));
+//            fab.setImageDrawable(getDrawable(R.drawable.ic_menu_gallery));
+            showUserFolders();
+        }
+
+        void showUserFolders() {
             folders.clear();
             try {
                 JSONArray jsonArray = new JSONArray(folderSharedPreferences.getString("list", "[]"));
@@ -264,7 +273,40 @@ public class MainActivity extends AppCompatActivity
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            fab.setBackgroundResource(android.R.drawable.btn_plus);
+        }
+
+        File systemFolderParent;
+
+        void showSystemFolders() {
+            folders.clear();
+            systemFolderParent.list
+        }
+
+        @Override
+        void onLeave() {
+            fab.setImageDrawable(oriDrawable);
+            super.onLeave();
+        }
+
+        final byte MODE_NORMAL = 1;
+        final byte MODE_SELECT = 2;
+        byte mode = MODE_NORMAL;
+
+        @Override
+        void onFabClicked() {
+            super.onFabClicked();
+            if (mode == MODE_NORMAL) {
+                mode = MODE_SELECT;
+                Snackbar.make(view, "Select a folder", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
+                listView.setBackgroundColor(R.color.colorFileExplorerBG);
+                systemFolderParent = new File("/");
+                showSystemFolders();
+            } else {
+                mode = MODE_NORMAL;
+                listView.setBackgroundColor(android.R.color.white);
+                showUserFolders();
+            }
         }
     }
 }
