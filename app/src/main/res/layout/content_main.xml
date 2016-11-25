@@ -14,6 +14,8 @@
         tools:showIn="@layout/app_bar_main"
         tools:context="com.github.beenotung.musicplayer.MainActivity">
 
+    <include android:id="@+id/container_scan" layout="@layout/content_scan"/>
     <include android:id="@+id/container_folder" layout="@layout/content_folder"/>
+    <include android:id="@+id/container_player" layout="@layout/content_player"/>
 
 </RelativeLayout>

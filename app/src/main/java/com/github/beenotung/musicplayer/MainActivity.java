@@ -58,6 +58,8 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+        switchNavItem(R.id.nav_player);
     }
 
     @Override
@@ -92,7 +94,7 @@ public class MainActivity extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
-    private final int[] containerIds = {R.id.container_folder};
+    private final int[] containerIds = {R.id.container_scan, R.id.container_folder, R.id.container_player};
     private final View[] containerView = new View[containerIds.length];
     private final HashMap<Integer, Container> containers = new HashMap<>();
 
@@ -100,18 +102,30 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
-        int id = item.getItemId();
-        int containerId = R.id.container_folder;
+        switchNavItem(item.getItemId());
+
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
+        return true;
+    }
+
+    public void switchNavItem(int id) {
+        // Handle navigation view item clicks here.
+        int containerId = R.id.container_player;
         Container container = null;
 
         if (id == R.id.nav_scan) {
             setTitle(R.string.scan);
+            containerId = R.id.container_scan;
+            // TODO scan container
         } else if (id == R.id.nav_folder) {
             setTitle(R.string.folder);
             containerId = R.id.container_folder;
-            container = new FolderContainer(findViewById(R.id.container_folder));
+            container = new FolderContainer(findViewById(containerId));
         } else if (id == R.id.nav_player) {
             setTitle(R.string.player);
+            containerId = R.id.container_player;
+            container = new PlayerContainer(findViewById(containerId));
         } else if (id == R.id.nav_settings) {
             setTitle(R.string.settings);
         } else if (id == R.id.nav_share) {
@@ -124,10 +138,10 @@ public class MainActivity extends AppCompatActivity
             View view = findViewById(i);
             if (view == null)
                 continue;
-            if (containers.get(containerId) == null) {
-                containers.put(containerId, container);
+            if (containers.get(id) == null) {
+                containers.put(id, container);
             }
-            container = containers.get(containerId);
+            container = containers.get(id);
             if (container == null) {
                 continue;
             }
@@ -139,10 +153,6 @@ public class MainActivity extends AppCompatActivity
                 view.setVisibility(View.GONE);
             }
         }
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
-        return true;
     }
 
 
@@ -489,6 +499,17 @@ public class MainActivity extends AppCompatActivity
                 folderSharedPreferences.edit().putString("list", jsonArray.toString()).apply();
                 showUserFolders();
             }
+        }
+    }
+
+    class PlayerContainer extends Container {
+        public PlayerContainer(View view) {
+            super(view);
+        }
+
+        @Override
+        void onEnter() {
+            super.onEnter();
         }
     }
 }
