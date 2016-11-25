@@ -5,8 +5,8 @@
               android:layout_height="match_parent">
 
     <Space android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_weight="1"/>
-    <ImageButton android:layout_width="100dp"
-                 android:layout_height="100dp"
+    <ImageButton android:layout_width="@dimen/main_function_button_size"
+                 android:layout_height="@dimen/main_function_button_size"
                  android:layout_gravity="center"
                  android:background="@android:drawable/ic_menu_search"
                  android:id="@+id/btn_scan"/>

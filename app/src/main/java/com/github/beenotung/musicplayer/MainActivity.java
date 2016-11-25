@@ -1,16 +1,24 @@
 package com.github.beenotung.musicplayer;
 
 import android.Manifest;
+import android.app.Service;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
+import android.media.AudioManager;
+import android.media.MediaMetadataRetriever;
+import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.IBinder;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.*;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -24,6 +32,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 public class MainActivity extends AppCompatActivity
@@ -59,7 +71,15 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+        initVar();
         switchNavItem(R.id.nav_player);
+    }
+
+    LayoutInflater mInflater;
+
+    void initVar() {
+        folderSharedPreferences = getSharedPreferences(FolderContainer.class.getName(), Context.MODE_PRIVATE);
+        mInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
     @Override
@@ -109,48 +129,53 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    public void switchNavItem(int id) {
+    public void switchNavItem(int navId) {
         // Handle navigation view item clicks here.
         int containerId = R.id.container_player;
         Container container = null;
 
-        if (id == R.id.nav_scan) {
+        if (navId == R.id.nav_scan) {
             setTitle(R.string.scan);
             containerId = R.id.container_scan;
             // TODO scan container
-        } else if (id == R.id.nav_folder) {
+        } else if (navId == R.id.nav_folder) {
             setTitle(R.string.folder);
             containerId = R.id.container_folder;
             container = new FolderContainer(findViewById(containerId));
-        } else if (id == R.id.nav_player) {
+        } else if (navId == R.id.nav_player) {
             setTitle(R.string.player);
             containerId = R.id.container_player;
             container = new PlayerContainer(findViewById(containerId));
-        } else if (id == R.id.nav_settings) {
+        } else if (navId == R.id.nav_settings) {
             setTitle(R.string.settings);
-        } else if (id == R.id.nav_share) {
+        } else if (navId == R.id.nav_share) {
             setTitle(R.string.share);
-        } else if (id == R.id.nav_feedback) {
+        } else if (navId == R.id.nav_feedback) {
             setTitle(R.string.feedback);
+        }
+
+        if (containers.get(containerId) == null) {
+            containers.put(containerId, container);
+        } else {
+            container = containers.get(containerId);
         }
 
         for (int i : containerIds) {
             View view = findViewById(i);
             if (view == null)
                 continue;
-            if (containers.get(id) == null) {
-                containers.put(id, container);
-            }
-            container = containers.get(id);
-            if (container == null) {
-                continue;
-            }
             if (i == containerId) {
-                container.onEnter();
                 view.setVisibility(View.VISIBLE);
             } else {
-                container.onLeave();
                 view.setVisibility(View.GONE);
+            }
+            Container c = containers.get(containerId);
+            if (c != null) {
+                if (c == container) {
+                    c.onEnter();
+                } else {
+                    c.onLeave();
+                }
             }
         }
     }
@@ -188,11 +213,27 @@ public class MainActivity extends AppCompatActivity
     }
 
     class Folder {
-        File file;
+        private File file;
         String title;
         String path;
         int id;
         boolean checked = false;
+
+        private long size = -1;
+
+        File file() {
+            if (this.file == null) {
+                this.file = new File(this.path);
+            }
+            return this.file;
+        }
+
+        long size() {
+            if (size == -1) {
+                size = Utils.size(this.file());
+            }
+            return size;
+        }
 
         public Folder() {
         }
@@ -276,11 +317,29 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    SharedPreferences folderSharedPreferences;
+
+    ArrayList<Folder> getUserFolders() {
+        ArrayList<Folder> res = new ArrayList<>();
+        try {
+            JSONArray jsonArray = new JSONArray(folderSharedPreferences.getString("list", "[]"));
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject jsonObject = jsonArray.getJSONObject(i);
+                Folder folder = new Folder();
+                folder.title = jsonObject.getString("title");
+                folder.path = jsonObject.getString("path");
+                folder.id = jsonObject.getInt("id");
+                res.add(folder);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return res;
+    }
+
     class FolderContainer extends Container {
         ListView listView;
         ArrayList<Folder> folders = new ArrayList<>();
-        private SharedPreferences folderSharedPreferences;
-        private final LayoutInflater mInflater;
         private Drawable oriDrawable;
         private Drawable normal_fab_drawable;
         private Drawable select_fab_drawable;
@@ -323,6 +382,8 @@ public class MainActivity extends AppCompatActivity
                 final Folder folder = getItem(position);
                 tv_title.setText(folder.title);
                 tv_path.setText(folder.path);
+                if (checkBox.isChecked())
+                    checkBox.performClick();
                 checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                     @Override
                     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -363,13 +424,6 @@ public class MainActivity extends AppCompatActivity
             }
             adapter = new FolderAdapter();
             listView.setAdapter(adapter);
-            listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
-                }
-            });
-            folderSharedPreferences = getSharedPreferences(FolderContainer.class.getName(), Context.MODE_PRIVATE);
             mInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         }
 
@@ -384,23 +438,6 @@ public class MainActivity extends AppCompatActivity
             showUserFolders();
         }
 
-        ArrayList<Folder> getUserFolders() {
-            ArrayList<Folder> res = new ArrayList<>();
-            try {
-                JSONArray jsonArray = new JSONArray(folderSharedPreferences.getString("list", "[]"));
-                for (int i = 0; i < jsonArray.length(); i++) {
-                    JSONObject jsonObject = jsonArray.getJSONObject(i);
-                    Folder folder = new Folder();
-                    folder.title = jsonObject.getString("title");
-                    folder.path = jsonObject.getString("path");
-                    folder.id = jsonObject.getInt("id");
-                    res.add(folder);
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            return res;
-        }
 
         void showUserFolders() {
             folders.clear();
@@ -444,7 +481,8 @@ public class MainActivity extends AppCompatActivity
                 Collections.sort(folders, new Comparator<Folder>() {
                     @Override
                     public int compare(Folder lhs, Folder rhs) {
-                        return lhs.title.compareTo(rhs.title);
+//                        return lhs.title.compareTo(rhs.title);
+                        return -Long.compare(lhs.size(), rhs.size());
                     }
                 });
                 folders.add(0, new Folder(-1, systemFolderParent));
@@ -502,14 +540,292 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    class Playlist {
+        class Song {
+            String path;
+            String name;
+            boolean isSelected = false;
+            boolean hide = false;
+
+            long id() throws NoSuchAlgorithmException, IOException {
+                MessageDigest md5 = MessageDigest.getInstance("MD5");
+                FileInputStream inputStream = new FileInputStream(new File(this.path));
+                byte[] bs = new byte[8192];
+                int read;
+                while ((read = inputStream.read(bs)) > 0) {
+                    md5.update(bs, 0, read);
+                }
+                bs = md5.digest();
+                long res = 0;
+                for (byte b : bs) {
+                    res = res << 8 | b;
+                }
+                return res;
+            }
+        }
+
+        ArrayList<Song> songs = new ArrayList<>();
+
+        void reset() {
+            songs.clear();
+        }
+
+        final String TAG_ADD = getClass().getName() + ":ADD";
+
+        void addFromFolder(File file) {
+            if (file.isDirectory()) {
+                for (File f : file.listFiles()) {
+                    addFromFolder(f);
+                }
+            } else {
+                String[] xs = file.getName().split(".");
+                int idx = file.getName().lastIndexOf('.');
+                if (idx > 0) {
+                    String ext = file.getName().substring(idx + 1);
+                    switch (ext.toLowerCase()) {
+                            /* audio */
+                        case "3gp":
+                        case "mp4":
+                        case "m4a":
+                        case "aac":
+                        case "ts":
+                        case "flac":
+                        case "mp3":
+                        case "mid":
+                        case "xmf":
+                        case "mxmf":
+                        case "rtttl":
+                        case "rtx":
+                        case "ota":
+                        case "imy":
+                        case "ogg":
+                        case "mkv":
+                        case "wav":
+                            /* video */
+                        case "webm":
+                            Song song = new Song();
+                            song.path = file.getAbsolutePath();
+                            song.name = file.getName();
+                            songs.add(song);
+                            Log.d(TAG_ADD, file.getAbsolutePath());
+                            break;
+                        default:
+                    }
+                }
+            }
+        }
+
+        void addFromFolder(String folder) {
+            addFromFolder(new File(folder));
+        }
+    }
+
     class PlayerContainer extends Container {
+        class PlayerService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener {
+            MediaPlayer mediaPlayer = null;
+            final String ACTION_PLAY = MainActivity.this.getClass().getCanonicalName() + ".PLAY";
+
+            @Override
+            public int onStartCommand(Intent intent, int flags, int startId) {
+                if (intent.getAction().equals(ACTION_PLAY)) {
+                    mediaPlayer = initMediaPlayer();
+                    mediaPlayer.prepareAsync();
+                }
+                return super.onStartCommand(intent, flags, startId);
+            }
+
+            MediaPlayer initMediaPlayer() {
+                MediaPlayer res = new MediaPlayer();
+                res.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                res.setOnPreparedListener(this);
+                res.setOnErrorListener(this);
+                return res;
+            }
+
+            void playSong(String path) throws IOException {
+                synchronized (this) {
+                    mediaPlayer.stop();
+                    mediaPlayer.reset();
+                    mediaPlayer.setDataSource(path);
+                    mediaPlayer.prepareAsync();
+                }
+            }
+
+            @Override
+            public IBinder onBind(Intent intent) {
+                return null;
+            }
+
+            @Override
+            public void onPrepared(MediaPlayer mp) {
+                mp.start();
+            }
+
+            @Override
+            public boolean onError(MediaPlayer mp, int what, int extra) {
+                Log.e(PlayerService.class.getName(), "MediaPlayer onError what:" + what + " extra:" + extra);
+                mp.reset();
+                return false;
+            }
+        }
+
+        private Drawable oriDrawable;
+        Playlist playlist = new Playlist();
+
         public PlayerContainer(View view) {
             super(view);
+            ImageButton btn_prev = (ImageButton) view.findViewById(R.id.btn_prev);
+            ImageButton btn_play = (ImageButton) view.findViewById(R.id.btn_play);
+            ImageButton btn_next = (ImageButton) view.findViewById(R.id.btn_next);
+            ListView listView = (ListView) view.findViewById(R.id.listview_song_list);
+            if (Utils.hasNull(btn_prev
+                    , btn_play
+                    , btn_next
+                    , listView
+            )) {
+                throw new IllegalStateException("Invalid View");
+            }
+            btn_play.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    toggle_play();
+                }
+            });
+            btn_prev.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    prev_song();
+                }
+            });
+            btn_next.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    next_song();
+                }
+            });
+            adapter = new PlayerAdapter();
+            listView.setAdapter(adapter);
         }
+
+        synchronized void scanSongs() {
+            playlist.reset();
+            for (Folder folder : getUserFolders()) {
+                playlist.addFromFolder(folder.path);
+            }
+            adapter.notifyDataSetChanged();
+        }
+
+        synchronized void toggle_play() {
+        }
+
+        synchronized void prev_song() {
+        }
+
+        synchronized void next_song() {
+        }
+
+        class PlayerAdapter extends BaseAdapter {
+            @Override
+            public int getCount() {
+                return playlist.songs.size();
+            }
+
+            @Override
+            public Playlist.Song getItem(int position) {
+                return playlist.songs.get(position);
+            }
+
+            @Override
+            public long getItemId(int position) {
+                try {
+                    return playlist.songs.get(position).id();
+                } catch (NoSuchAlgorithmException | IOException e) {
+                    e.printStackTrace();
+                    return position;
+                }
+            }
+
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                if (convertView == null) {
+                    convertView = mInflater.inflate(R.layout.listitem_folder, null);
+                }
+                CheckBox checkBox = (CheckBox) convertView.findViewById(R.id.checkBox);
+                TextView tv_title = (TextView) convertView.findViewById(R.id.folder_title);
+                TextView tv_path = (TextView) convertView.findViewById(R.id.folder_path);
+                if (Utils.hasNull(
+                        checkBox
+                        , tv_title
+                        , tv_path
+                )) {
+                    throw new IllegalStateException("Invalid list item");
+                }
+                final Playlist.Song song = getItem(position);
+                tv_title.setText(song.name);
+                Uri uri = Uri.parse(song.path);
+                MediaMetadataRetriever mmr = new MediaMetadataRetriever();
+                mmr.setDataSource(MainActivity.this, uri);
+                String durationStr = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+                int sec = Integer.parseInt(durationStr) / 1000;
+                StringBuilder duration = new StringBuilder();
+                if (sec > 60) {
+                    duration.append(sec / 60);
+                    duration.append(" min. ");
+                    sec = sec % 60;
+                }
+                duration.append(sec);
+                duration.append(" sec.");
+                tv_path.setText(duration.toString());
+                checkBox.setChecked(song.isSelected);
+                checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                    @Override
+                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                        if (isChecked) {
+                            song.isSelected = true;
+                        }
+                    }
+                });
+                return convertView;
+            }
+        }
+
+        PlayerAdapter adapter;
 
         @Override
         void onEnter() {
             super.onEnter();
+            oriDrawable = fab.getDrawable();
+            fab.setImageDrawable(getDrawable(android.R.drawable.ic_menu_delete));
+            if (playlist.songs.isEmpty()) {
+                scanSongs();
+            }
+        }
+
+        @Override
+        void onLeave() {
+            super.onLeave();
+            fab.setImageDrawable(oriDrawable);
+        }
+
+        @Override
+        void onFabClicked() {
+            super.onFabClicked();
+            Snackbar.make(view, "Removed From List", Snackbar.LENGTH_LONG)
+                    .setAction("Action", null).show();
+            ArrayList<Playlist.Song> xs = new ArrayList<>();
+            for (Playlist.Song song : playlist.songs) {
+                if (song.isSelected) {
+                    song.hide = true;
+                } else {
+                    xs.add(song);
+                }
+            }
+            /* TODO store hide option */
+            playlist.songs.clear();
+            adapter.notifyDataSetChanged();
+            playlist.songs = xs;
+            adapter.notifyDataSetChanged();
+//            scanSongs();
         }
     }
 }
