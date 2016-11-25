@@ -1,19 +1,16 @@
 package com.github.beenotung.musicplayer;
 
 import android.Manifest;
-import android.app.Service;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
-import android.media.AudioManager;
 import android.media.MediaMetadataRetriever;
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.IBinder;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
@@ -32,20 +29,27 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
+import static com.github.beenotung.musicplayer.Playlist.playlist;
+
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
+    public static MainActivity mainActivity;
 
     private FloatingActionButton fab;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        try {
+            Class.forName("android.os.AsyncTask");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        mainActivity = this;
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -540,137 +544,10 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    class Playlist {
-        class Song {
-            String path;
-            String name;
-            boolean isSelected = false;
-            boolean hide = false;
+    public class PlayerContainer extends Container {
 
-            long id() throws NoSuchAlgorithmException, IOException {
-                MessageDigest md5 = MessageDigest.getInstance("MD5");
-                FileInputStream inputStream = new FileInputStream(new File(this.path));
-                byte[] bs = new byte[8192];
-                int read;
-                while ((read = inputStream.read(bs)) > 0) {
-                    md5.update(bs, 0, read);
-                }
-                bs = md5.digest();
-                long res = 0;
-                for (byte b : bs) {
-                    res = res << 8 | b;
-                }
-                return res;
-            }
-        }
-
-        ArrayList<Song> songs = new ArrayList<>();
-
-        void reset() {
-            songs.clear();
-        }
-
-        final String TAG_ADD = getClass().getName() + ":ADD";
-
-        void addFromFolder(File file) {
-            if (file.isDirectory()) {
-                for (File f : file.listFiles()) {
-                    addFromFolder(f);
-                }
-            } else {
-                String[] xs = file.getName().split(".");
-                int idx = file.getName().lastIndexOf('.');
-                if (idx > 0) {
-                    String ext = file.getName().substring(idx + 1);
-                    switch (ext.toLowerCase()) {
-                            /* audio */
-                        case "3gp":
-                        case "mp4":
-                        case "m4a":
-                        case "aac":
-                        case "ts":
-                        case "flac":
-                        case "mp3":
-                        case "mid":
-                        case "xmf":
-                        case "mxmf":
-                        case "rtttl":
-                        case "rtx":
-                        case "ota":
-                        case "imy":
-                        case "ogg":
-                        case "mkv":
-                        case "wav":
-                            /* video */
-                        case "webm":
-                            Song song = new Song();
-                            song.path = file.getAbsolutePath();
-                            song.name = file.getName();
-                            songs.add(song);
-                            Log.d(TAG_ADD, file.getAbsolutePath());
-                            break;
-                        default:
-                    }
-                }
-            }
-        }
-
-        void addFromFolder(String folder) {
-            addFromFolder(new File(folder));
-        }
-    }
-
-    class PlayerContainer extends Container {
-        class PlayerService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener {
-            MediaPlayer mediaPlayer = null;
-            final String ACTION_PLAY = MainActivity.this.getClass().getCanonicalName() + ".PLAY";
-
-            @Override
-            public int onStartCommand(Intent intent, int flags, int startId) {
-                if (intent.getAction().equals(ACTION_PLAY)) {
-                    mediaPlayer = initMediaPlayer();
-                    mediaPlayer.prepareAsync();
-                }
-                return super.onStartCommand(intent, flags, startId);
-            }
-
-            MediaPlayer initMediaPlayer() {
-                MediaPlayer res = new MediaPlayer();
-                res.setAudioStreamType(AudioManager.STREAM_MUSIC);
-                res.setOnPreparedListener(this);
-                res.setOnErrorListener(this);
-                return res;
-            }
-
-            void playSong(String path) throws IOException {
-                synchronized (this) {
-                    mediaPlayer.stop();
-                    mediaPlayer.reset();
-                    mediaPlayer.setDataSource(path);
-                    mediaPlayer.prepareAsync();
-                }
-            }
-
-            @Override
-            public IBinder onBind(Intent intent) {
-                return null;
-            }
-
-            @Override
-            public void onPrepared(MediaPlayer mp) {
-                mp.start();
-            }
-
-            @Override
-            public boolean onError(MediaPlayer mp, int what, int extra) {
-                Log.e(PlayerService.class.getName(), "MediaPlayer onError what:" + what + " extra:" + extra);
-                mp.reset();
-                return false;
-            }
-        }
 
         private Drawable oriDrawable;
-        Playlist playlist = new Playlist();
 
         public PlayerContainer(View view) {
             super(view);
@@ -716,12 +593,42 @@ public class MainActivity extends AppCompatActivity
         }
 
         synchronized void toggle_play() {
+            if (PlayerService.playerService == null) {
+                play();
+            } else {
+                if (PlayerService.playerService.isPlaying()) {
+                    pause();
+                } else {
+                    play();
+                }
+            }
+        }
+
+        void play() {
+            grant_permission(Manifest.permission.WAKE_LOCK);
+            grant_permission(Manifest.permission.MEDIA_CONTENT_CONTROL);
+            Intent intent = new Intent(MainActivity.this, PlayerService.class);
+            intent.setAction(PlayerService.ACTION_PLAY);
+            Log.d(getClass().getName(), "try to start service: " + intent.getAction());
+            startService(intent);
+        }
+
+        void pause() {
+            grant_permission(Manifest.permission.MEDIA_CONTENT_CONTROL);
+            Intent intent = new Intent(MainActivity.this, PlayerService.class);
+            intent.setAction(PlayerService.ACTION_STOP);
+            Log.d(getClass().getName(), "try to start service: " + intent.getAction());
+            startService(intent);
         }
 
         synchronized void prev_song() {
+            playlist.idx(playlist.idx() - 1);
+            play();
         }
 
         synchronized void next_song() {
+            playlist.idx(playlist.idx() + 1);
+            play();
         }
 
         class PlayerAdapter extends BaseAdapter {
