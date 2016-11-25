@@ -30,4 +30,5 @@
                 android:textAppearance="@style/TextAppearance.AppCompat.Small"
         />
     </LinearLayout>
+
 </LinearLayout>
