@@ -24,3 +24,6 @@ Save "delete" option on songs without slowing down the launching speed.
 
 ## Payment
 This app is free, welcome donation and contribution by reaching me in email or GitHub.
+
+## License
+GPL-3.0 (GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007)
