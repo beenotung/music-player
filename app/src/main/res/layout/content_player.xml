@@ -11,17 +11,17 @@
             android:layout_margin="@dimen/standard_margin"
             android:layout_width="wrap_content" android:layout_height="wrap_content">
         <TextView
-                android:text="title"
+                android:text="Title"
                 android:textAppearance="@style/TextAppearance.AppCompat.Large"
                 android:layout_gravity="center"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" android:id="@+id/title"/>
+                android:layout_height="wrap_content" android:id="@+id/tv_title"/>
         <TextView
-                android:text="path"
+                android:text="Filename"
                 android:layout_gravity="center"
                 android:textAppearance="@style/TextAppearance.AppCompat.Small"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" android:id="@+id/path"/>
+                android:layout_height="wrap_content" android:id="@+id/tv_filename"/>
         <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content"
                       android:layout_marginLeft="@dimen/small_margin"
                       android:layout_marginRight="@dimen/small_margin"

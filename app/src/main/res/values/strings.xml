@@ -94,4 +94,5 @@
     <string name="play_in_random_order">Play in Random Order</string>
     <string name="about">About</string>
     <string name="author">Beeno Tung</string>
+    <string name="removed_from_list">Removed From List</string>
 </resources>

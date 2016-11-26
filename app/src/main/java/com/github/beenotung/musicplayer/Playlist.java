@@ -10,7 +10,6 @@ import org.mozilla.universalchardet.UniversalDetector;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.CharacterCodingException;
@@ -37,7 +36,7 @@ public class Playlist {
         String path;
         String filename; // without extension
         @Nullable
-        String name;
+        String title = null;
         boolean isSelected = false;
         boolean hide = false;
 
@@ -69,20 +68,36 @@ public class Playlist {
             if (idx >= 0) {
                 this.filename = this.filename.substring(0, idx);
             }
+        }
+
+        /* deferred task, to speed up launch speed */
+        void checkName() {
             MediaMetadataRetriever mmr = new MediaMetadataRetriever();
             mmr.setDataSource(path);
-            this.name = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
-            if (this.name != null) {
-                name = name.replaceAll("\uFFFD", "\"");
-                String charset = guessCharset(this.name);
+            this.title = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+            try {
+                if (this.title != null) {
+                    if (this.title.contains(this.filename) || this.filename.contains(this.title)) {
+                        this.filename = this.title.length() < this.filename.length()
+                                ? this.title
+                                : this.filename;
+                        this.title = null;
+                    }
+                }
+            } catch (NullPointerException e) {
+                Log.e(TAG, "odd things happened", e);
+                this.title = null;
+            }
+            if (this.title != null) {
+                title = title.replaceAll("\uFFFD", "\"");
+                String charset = guessCharset(this.title);
                 if (charset == null) {
-                    this.name = null;
+                    this.title = null;
                 } else {
                     try {
-                        this.name = changeCharset(charset, this.name);
-                    } catch (CharacterCodingException e) {
-                        e.printStackTrace();
-                        this.name = null;
+                        this.title = changeCharset(charset, this.title);
+                    } catch (Exception e) {
+                        this.title = null;
                     }
                 }
             }
@@ -105,22 +120,32 @@ public class Playlist {
         }
     }
 
+    final Object songsLock = new Object();
     ArrayList<Song> songs = new ArrayList<>();
     private int idx = 0;
 
+    @Nullable
     public String currentSongName() {
         if (songs.size() == 0)
             return null;
         Song song = songs.get(idx());
-        return song.name == null
+        return song.title == null
                 ? song.filename
-                : song.name;
+                : song.title;
     }
 
+    @Nullable
     public String currentSongPath() {
         if (songs.size() == 0)
             return null;
         return songs.get(idx()).path;
+    }
+
+    @Nullable
+    public Song currentSong() {
+        if (songs.size() == 0)
+            return null;
+        return songs.get(idx());
     }
 
     int idx() {
@@ -132,7 +157,6 @@ public class Playlist {
     void idx(int newVal) {
         if (newVal != idx) {
             idx = newVal % songs.size();
-            // TODO change song
         }
     }
 
@@ -142,7 +166,7 @@ public class Playlist {
 
     final String TAG_ADD = getClass().getName() + ":ADD";
 
-    void addFromFolder(File file) {
+    private void addFromFolder(File file) {
         if (file.isDirectory()) {
             for (File f : file.listFiles()) {
                 addFromFolder(f);
@@ -182,14 +206,28 @@ public class Playlist {
         }
     }
 
-    void addFromFolder(String folder) {
+    private void addFromFolder(String folder) {
         addFromFolder(new File(folder));
     }
 
-    synchronized void scanSongs(ArrayList<Folder> folders) {
-        playlist.reset();
-        for (Folder folder : folders) {
-            playlist.addFromFolder(folder.path);
+    void scanSongs(ArrayList<Folder> folders) {
+        synchronized (songsLock) {
+            playlist.reset();
+            for (Folder folder : folders) {
+                playlist.addFromFolder(folder.path);
+            }
+        }
+    }
+
+    boolean isEmpty() {
+        synchronized (songsLock) {
+            return songs.isEmpty();
+        }
+    }
+
+    void replaceSongs(ArrayList<Song> xs) {
+        synchronized (songsLock) {
+            songs = xs;
         }
     }
 
