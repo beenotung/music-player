@@ -632,15 +632,15 @@ public class MainActivity extends AppCompatActivity
         }
 
         void play() {
-            if (playerService.isPlaying()) {
-                mediaPlayer.stop();
-            }
-            mediaPlayer.reset();
             grant_permission(Manifest.permission.WAKE_LOCK);
             grant_permission(Manifest.permission.MEDIA_CONTENT_CONTROL);
             if (lastIdx == playlist.idx()) {
                 resume();
             } else {
+                if (playerService.isPlaying()) {
+                    mediaPlayer.stop();
+                }
+                mediaPlayer.reset();
                 for (; ; ) {
                     try {
                         playerService.mediaPlayer.setDataSource(playlist.currentSongPath());
