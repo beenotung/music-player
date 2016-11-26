@@ -7,9 +7,7 @@ import android.graphics.drawable.Drawable;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.net.Uri;
-import android.os.Bundle;
-import android.os.Environment;
-import android.os.IBinder;
+import android.os.*;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
@@ -106,9 +104,28 @@ public class MainActivity extends AppCompatActivity
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
-//            super.onBackPressed(); // will stop the app (stop the music as well)
-            moveTaskToBack(false);
+            PlayerContainer playerContainer = (PlayerContainer) containers.get(R.id.container_player);
+            if (playerContainer != null && playerContainer.playerService != null && playerContainer.playerService.isPlaying()) {
+                if (playerContainer.playerService.isPlaying()) {
+                    moveTaskToBack(false);
+                } else {
+                    playerContainer.unbindService();
+                    exit();
+                }
+            } else {
+//                super.onBackPressed(); // will stop the app
+                exit();
+            }
         }
+    }
+
+    void exit() {
+        System.exit(0); // use this to avoid any error
+//        if (Build.VERSION.SDK_INT >= 21) { //Is the user running Lollipop or above?
+//            finishAndRemoveTask(); //If yes, run the new fancy function to end the app and remove it from the Task Manager.
+//        } else {
+//            finish(); //If not, then just end the app (without removing the task completely).
+//        }
     }
 
     @Override
