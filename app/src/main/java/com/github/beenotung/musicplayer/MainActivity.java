@@ -421,11 +421,11 @@ public class MainActivity extends AppCompatActivity
                     @Override
                     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                         folder.checked = isChecked;
-                        if (mode == MODE_SELECT || mode == MODE_DELETE) {
+                        if (mode == MODE_NORMAL || mode == MODE_DELETE) {
                             if (isChecked) {
                                 mode = MODE_DELETE;
                             } else {
-                                mode = MODE_SELECT;
+                                mode = MODE_NORMAL;
                                 for (Folder folder1 : folders) {
                                     if (folder1.checked) {
                                         mode = MODE_DELETE;
@@ -433,7 +433,7 @@ public class MainActivity extends AppCompatActivity
                                     }
                                 }
                             }
-                            fab.setImageDrawable(mode == MODE_SELECT
+                            fab.setImageDrawable(mode == MODE_NORMAL
                                     ? normal_fab_drawable
                                     : delete_fab_drawable
                             );
@@ -475,9 +475,10 @@ public class MainActivity extends AppCompatActivity
             adapter = new FolderAdapter();
             listView.setAdapter(adapter);
             mInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            normal_fab_drawable = getDrawable(R.drawable.ic_menu_gallery);
+            normal_fab_drawable = getDrawable(android.R.drawable.ic_menu_gallery);
             select_fab_drawable = getDrawable(R.drawable.check_grey);
             delete_fab_drawable = getDrawable(android.R.drawable.ic_menu_delete);
+            showUserFolders();
         }
 
         void showUserFolders() {
@@ -547,7 +548,6 @@ public class MainActivity extends AppCompatActivity
                 default:
                     Log.e(TAG, "undefined mode");
             }
-            fab.invalidate();
         }
 
         @Override
