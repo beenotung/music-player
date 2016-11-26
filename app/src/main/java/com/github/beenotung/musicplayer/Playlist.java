@@ -1,6 +1,6 @@
 package com.github.beenotung.musicplayer;
 
-import android.util.Log;
+import android.content.SharedPreferences;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by beenotung on 11/25/16.
@@ -110,7 +112,6 @@ class Playlist {
                         song.path = file.getAbsolutePath();
                         song.name = file.getName();
                         songs.add(song);
-//                        Log.d(TAG_ADD, file.getAbsolutePath());
                         break;
                     default:
                 }
@@ -120,5 +121,54 @@ class Playlist {
 
     void addFromFolder(String folder) {
         addFromFolder(new File(folder));
+    }
+
+    synchronized void scanSongs(ArrayList<Folder> folders) {
+        playlist.reset();
+        for (Folder folder : folders) {
+            playlist.addFromFolder(folder.path);
+        }
+    }
+
+    /**
+     * @deprecated slow
+     * */
+    synchronized void scanSongs(ArrayList<Folder> folders, SharedPreferences sharedPreferences) {
+        Set<String> ss = sharedPreferences.getStringSet("hidden_ids", new HashSet<String>());
+        Set<Long> ids = new HashSet<>();
+        for (String x : ss) {
+            ids.add(Long.parseLong(x));
+        }
+        playlist.reset();
+        for (Folder folder : folders) {
+            playlist.addFromFolder(folder.path);
+        }
+        ArrayList<Song> xs = new ArrayList<>();
+        for (Song song : songs) {
+            try {
+                if (!ids.contains(song.id())) {
+                    xs.add(song);
+                }
+            } catch (NoSuchAlgorithmException | IOException e) {
+                e.printStackTrace();
+                xs.add(song);
+            }
+        }
+        songs = xs;
+    }
+
+    void hideFiles(Set<Long> ids, SharedPreferences sharedPreferences) throws IOException, NoSuchAlgorithmException {
+        HashSet<String> ss = new HashSet<>();
+        for (Long id : ids) {
+            ss.add(Long.toString(id));
+        }
+        sharedPreferences.edit().putStringSet("hidden_ids", ss).apply();
+        ArrayList<Song> xs = new ArrayList<>();
+        for (Song song : songs) {
+            if (!ids.contains(song.id())) {
+                xs.add(song);
+            }
+        }
+        songs = xs;
     }
 }

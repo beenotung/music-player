@@ -4,4 +4,8 @@
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
     <color name="colorFileExplorerBG">#b3d9ff</color>
+    <color name="font_playing">@android:color/holo_blue_dark</color>
+    <color name="font_not_playing">@android:color/primary_text_light</color>
+    <color name="bg_playing">#00c9c9</color>
+    <color name="bg_not_playing">#fff</color>
 </resources>

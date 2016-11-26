@@ -15,13 +15,13 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
-import android.view.*;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.*;
 import android.widget.*;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -211,58 +211,6 @@ public class MainActivity extends AppCompatActivity
         return res;
     }
 
-    class Folder {
-        private File file;
-        String title;
-        String path;
-        int id;
-        boolean checked = false;
-
-        private long size = -1;
-
-        File file() {
-            if (this.file == null) {
-                this.file = new File(this.path);
-            }
-            return this.file;
-        }
-
-        long size() {
-            if (size == -1) {
-                size = Utils.size(this.file());
-            }
-            return size;
-        }
-
-        public Folder() {
-        }
-
-        public Folder(int id, File file) {
-            this.file = file;
-            this.id = id;
-            this.path = file.getAbsolutePath();
-            if (this.path.equals("/")) {
-                this.title = "root";
-            } else {
-                this.title = file.getName();
-            }
-        }
-
-        @Override
-        public String toString() {
-            JSONObject res = new JSONObject();
-            try {
-                res.put("title", title);
-                res.put("path", path);
-                res.put("id", id);
-            } catch (JSONException e) {
-                e.printStackTrace();
-                onStop();
-            }
-            return res.toString();
-        }
-    }
-
     final int MY_PERMISSIONS_REQUEST_ACCESS_FILE = 15;
 
     @Override
@@ -405,7 +353,7 @@ public class MainActivity extends AppCompatActivity
                                 }
                             } else {
                             /* go to child */
-                                systemFolderParent = getItem(position).file;
+                                systemFolderParent = getItem(position).file();
                             }
                             showSystemFolders();
                         }
@@ -547,6 +495,7 @@ public class MainActivity extends AppCompatActivity
         private final TextView tv_title;
         private final TextView tv_path;
         private MediaPlayer mediaPlayer;
+        private final ListView listView;
 
         public PlayerContainer(View view) {
             super(view);
@@ -555,7 +504,7 @@ public class MainActivity extends AppCompatActivity
             final ImageButton btn_next = (ImageButton) view.findViewById(R.id.btn_next);
             tv_title = (TextView) view.findViewById(R.id.title);
             tv_path = (TextView) view.findViewById(R.id.path);
-            ListView listView = (ListView) view.findViewById(R.id.listview_song_list);
+            listView = (ListView) view.findViewById(R.id.listview_song_list);
             if (Utils.hasNull(btn_prev
                     , btn_toggle
                     , btn_next
@@ -618,13 +567,6 @@ public class MainActivity extends AppCompatActivity
             bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
         }
 
-        synchronized void scanSongs() {
-            playlist.reset();
-            for (Folder folder : getUserFolders()) {
-                playlist.addFromFolder(folder.path);
-            }
-            adapter.notifyDataSetChanged();
-        }
 
         int lastIdx = -1;
 
@@ -637,6 +579,10 @@ public class MainActivity extends AppCompatActivity
         }
 
         void play() {
+            if (playerService.isPlaying()) {
+                mediaPlayer.stop();
+            }
+            mediaPlayer.reset();
             grant_permission(Manifest.permission.WAKE_LOCK);
             grant_permission(Manifest.permission.MEDIA_CONTENT_CONTROL);
             if (lastIdx == playlist.idx()) {
@@ -655,8 +601,8 @@ public class MainActivity extends AppCompatActivity
                         }
                     }
                 }
-                lastIdx = playlist.idx();
                 playerService.mediaPlayer.prepareAsync();
+                lastIdx = playlist.idx();
             }
             tv_title.setText(playlist.currentSongName());
             tv_path.setText(getString(R.string.playing));
@@ -696,6 +642,7 @@ public class MainActivity extends AppCompatActivity
                 Log.d(TAG, "set to next track");
                 mediaPlayer.setNextMediaPlayer(mp);
             }
+            next_song();
         }
 
         @Override
@@ -731,17 +678,19 @@ public class MainActivity extends AppCompatActivity
             }
 
             @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
+            public View getView(final int position, View convertView, ViewGroup parent) {
                 if (convertView == null) {
                     convertView = mInflater.inflate(R.layout.listitem_folder, null);
                 }
-                CheckBox checkBox = (CheckBox) convertView.findViewById(R.id.checkBox);
-                TextView tv_title = (TextView) convertView.findViewById(R.id.folder_title);
+                final CheckBox checkBox = (CheckBox) convertView.findViewById(R.id.checkBox);
+                final TextView tv_title = (TextView) convertView.findViewById(R.id.folder_title);
                 TextView tv_path = (TextView) convertView.findViewById(R.id.folder_path);
+                final LinearLayout container = (LinearLayout) convertView.findViewById(R.id.container_listitem);
                 if (Utils.hasNull(
                         checkBox
                         , tv_title
                         , tv_path
+                        , container
                 )) {
                     throw new IllegalStateException("Invalid list item");
                 }
@@ -770,6 +719,21 @@ public class MainActivity extends AppCompatActivity
                         }
                     }
                 });
+//                tv_title.setTextColor(position == playlist.idx() ? R.color.playing : R.color.not_playing);
+//                container.setBackgroundColor(position == playlist.idx() ? R.color.bg_playing : R.color.bg_not_playing);
+//                if (position == playlist.idx()) {
+//                    Log.d(TAG, "playing this: " + song.name);
+//                }
+                convertView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if (position == playlist.idx()) {
+                            return;
+                        }
+                        playlist.idx(position);
+                        play();
+                    }
+                });
                 return convertView;
             }
         }
@@ -782,7 +746,9 @@ public class MainActivity extends AppCompatActivity
             oriDrawable = fab.getDrawable();
             fab.setImageDrawable(getDrawable(android.R.drawable.ic_menu_delete));
             if (playlist.songs.isEmpty()) {
-                scanSongs();
+//                playlist.scanSongs(getUserFolders(), getPreferences(Context.MODE_PRIVATE));
+                playlist.scanSongs(getUserFolders());
+                adapter.notifyDataSetChanged();
             }
         }
 
@@ -810,7 +776,6 @@ public class MainActivity extends AppCompatActivity
             adapter.notifyDataSetChanged();
             playlist.songs = xs;
             adapter.notifyDataSetChanged();
-//            scanSongs();
         }
     }
 }
