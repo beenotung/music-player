@@ -1,10 +1,22 @@
 package com.github.beenotung.musicplayer;
 
 import android.content.SharedPreferences;
+import android.media.MediaMetadataRetriever;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.util.Log;
+import org.mozilla.universalchardet.UniversalDetector;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CharsetEncoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -14,17 +26,67 @@ import java.util.Set;
 /**
  * Created by beenotung on 11/25/16.
  */
-class Playlist {
+public class Playlist {
     public static Playlist playlist = new Playlist();
 
     private Playlist() {
     }
 
-    class Song {
+    public static class Song {
+        static final String TAG = Song.class.getName();
         String path;
+        String filename; // without extension
+        @Nullable
         String name;
         boolean isSelected = false;
         boolean hide = false;
+
+        @Nullable
+        public static String guessCharset(@NonNull String s) {
+            UniversalDetector detector = new UniversalDetector(null);
+            byte[] bytes = s.getBytes();
+            detector.handleData(bytes, 0, bytes.length);
+            detector.dataEnd();
+            return detector.getDetectedCharset();
+        }
+
+        /* reference : http://stackoverflow.com/questions/229015/encoding-conversion-in-java */
+        public static String changeCharset(String charsetName, String data) throws CharacterCodingException {
+            Charset charset = Charset.forName(charsetName);
+            CharsetDecoder decoder = charset.newDecoder();
+            CharsetEncoder encoder = charset.newEncoder();
+
+            ByteBuffer bbuf = encoder.encode(CharBuffer.wrap(data));
+
+            CharBuffer cbuf = decoder.decode(bbuf);
+            return cbuf.toString();
+        }
+
+        public Song(File file) {
+            this.path = file.getAbsolutePath();
+            this.filename = file.getName();
+            int idx = filename.lastIndexOf('.');
+            if (idx >= 0) {
+                this.filename = this.filename.substring(0, idx);
+            }
+            MediaMetadataRetriever mmr = new MediaMetadataRetriever();
+            mmr.setDataSource(path);
+            this.name = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+            if (this.name != null) {
+                name = name.replaceAll("\uFFFD", "\"");
+                String charset = guessCharset(this.name);
+                if (charset == null) {
+                    this.name = null;
+                } else {
+                    try {
+                        this.name = changeCharset(charset, this.name);
+                    } catch (CharacterCodingException e) {
+                        e.printStackTrace();
+                        this.name = null;
+                    }
+                }
+            }
+        }
 
         long id() throws NoSuchAlgorithmException, IOException {
             MessageDigest md5 = MessageDigest.getInstance("MD5");
@@ -49,7 +111,10 @@ class Playlist {
     public String currentSongName() {
         if (songs.size() == 0)
             return null;
-        return songs.get(idx()).name;
+        Song song = songs.get(idx());
+        return song.name == null
+                ? song.filename
+                : song.name;
     }
 
     public String currentSongPath() {
@@ -108,9 +173,7 @@ class Playlist {
                     case "wav":
                         /* video */
                     case "webm":
-                        Song song = new Song();
-                        song.path = file.getAbsolutePath();
-                        song.name = file.getName();
+                        Song song = new Song(file);
                         songs.add(song);
                         break;
                     default:

@@ -12,7 +12,6 @@ public class Folder {
     private File file;
     String title;
     String path;
-    int id;
     boolean checked = false;
 
     private long size = -1;
@@ -34,9 +33,8 @@ public class Folder {
     public Folder() {
     }
 
-    public Folder(int id, File file) {
+    public Folder(File file) {
         this.file = file;
-        this.id = id;
         this.path = file.getAbsolutePath();
         if (this.path.equals("/")) {
             this.title = "root";
@@ -51,7 +49,6 @@ public class Folder {
         try {
             res.put("title", title);
             res.put("path", path);
-            res.put("id", id);
         } catch (JSONException e) {
             e.printStackTrace();
             return "{}";

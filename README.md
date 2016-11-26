@@ -14,5 +14,10 @@ Personal usage to solve the problem in [Preface](#preface).
 ## Goal
 Play any supported audio format music in the background without keeping the screen on.
 
+## Features
+ - Play music under any folder
+ - Continue playing when working on other app / screen off
+ - Show meta song name (limited detection on garbled code, show filename as fallback)
+
 ## Todo
 Save "delete" option on songs without slowing down the launching speed.

@@ -85,6 +85,17 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (isFinishing()) {
+            PlayerContainer container = (PlayerContainer) containers.get(R.id.container_player);
+            if (container != null) {
+                container.unbindService();
+            }
+        }
+    }
+
+    @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
@@ -328,7 +339,6 @@ public class MainActivity extends AppCompatActivity
                 Folder folder = new Folder();
                 folder.title = jsonObject.getString("title");
                 folder.path = jsonObject.getString("path");
-                folder.id = jsonObject.getInt("id");
                 res.add(folder);
             }
         } catch (JSONException e) {
@@ -341,8 +351,9 @@ public class MainActivity extends AppCompatActivity
         ListView listView;
         ArrayList<Folder> folders = new ArrayList<>();
         private Drawable oriDrawable;
-        private Drawable normal_fab_drawable;
-        private Drawable select_fab_drawable;
+        private Drawable last_fab_drawable;
+        private final Drawable normal_fab_drawable;
+        private final Drawable select_fab_drawable;
         private final FolderAdapter adapter;
 
         class FolderAdapter extends BaseAdapter {
@@ -362,7 +373,7 @@ public class MainActivity extends AppCompatActivity
 
             @Override
             public long getItemId(int position) {
-                return folders.get(position).id;
+                return position;
             }
 
             @Override
@@ -425,19 +436,10 @@ public class MainActivity extends AppCompatActivity
             adapter = new FolderAdapter();
             listView.setAdapter(adapter);
             mInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        }
-
-
-        @Override
-        void onEnter() {
-            super.onEnter();
-            oriDrawable = fab.getDrawable();
             normal_fab_drawable = getDrawable(R.drawable.ic_menu_gallery);
             select_fab_drawable = getDrawable(android.R.drawable.checkbox_on_background);
-            fab.setImageDrawable(normal_fab_drawable);
-            showUserFolders();
+            last_fab_drawable = normal_fab_drawable;
         }
-
 
         void showUserFolders() {
             folders.clear();
@@ -451,14 +453,14 @@ public class MainActivity extends AppCompatActivity
             grant_permission(Manifest.permission.READ_EXTERNAL_STORAGE);
             if (systemFolderParent == null) {
                 folders.clear();
-                folders.add(new Folder(0, Environment.getRootDirectory()));
-                folders.add(new Folder(1, Environment.getDataDirectory()));
-                folders.add(new Folder(2, Environment.getDownloadCacheDirectory()));
-                folders.add(new Folder(3, Environment.getExternalStorageDirectory()));
-                folders.add(new Folder(4, Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC)));
-                folders.add(new Folder(4, Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES)));
-                folders.add(new Folder(4, Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)));
-                folders.add(new Folder(4, Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)));
+                folders.add(new Folder(Environment.getRootDirectory()));
+                folders.add(new Folder(Environment.getDataDirectory()));
+                folders.add(new Folder(Environment.getDownloadCacheDirectory()));
+                folders.add(new Folder(Environment.getExternalStorageDirectory()));
+                folders.add(new Folder(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC)));
+                folders.add(new Folder(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES)));
+                folders.add(new Folder(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)));
+                folders.add(new Folder(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)));
                 Collections.sort(folders, new Comparator<Folder>() {
                     @Override
                     public int compare(Folder lhs, Folder rhs) {
@@ -475,7 +477,7 @@ public class MainActivity extends AppCompatActivity
                 folders.clear();
                 for (int i = 0; i < files.length; i++) {
                     if (files[i].isDirectory()) {
-                        folders.add(new Folder(i, files[i]));
+                        folders.add(new Folder(files[i]));
                     }
                 }
                 Collections.sort(folders, new Comparator<Folder>() {
@@ -485,9 +487,17 @@ public class MainActivity extends AppCompatActivity
                         return -Long.compare(lhs.size(), rhs.size());
                     }
                 });
-                folders.add(0, new Folder(-1, systemFolderParent));
+                folders.add(0, new Folder(systemFolderParent));
             }
             adapter.notifyDataSetChanged();
+        }
+
+        @Override
+        void onEnter() {
+            super.onEnter();
+            oriDrawable = fab.getDrawable();
+            fab.setImageDrawable(last_fab_drawable);
+            showUserFolders();
         }
 
         @Override
@@ -505,16 +515,18 @@ public class MainActivity extends AppCompatActivity
             super.onFabClicked();
             if (mode == MODE_NORMAL) {
                 mode = MODE_SELECT;
-                Snackbar.make(view, "Select a folder", Snackbar.LENGTH_LONG)
+                setTitle(R.string.select_folder);
+                Snackbar.make(view, R.string.select_folder, Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
-                fab.setImageDrawable(select_fab_drawable);
-                listView.setBackgroundColor(R.color.colorFileExplorerBG);
+                last_fab_drawable = select_fab_drawable;
+                listView.setBackgroundColor(getColor(R.color.colorFileExplorerBG));
                 systemFolderParent = null;
                 showSystemFolders();
             } else {
                 mode = MODE_NORMAL;
-                fab.setImageDrawable(normal_fab_drawable);
-                listView.setBackgroundColor(android.R.color.white);
+                setTitle(R.string.folder);
+                last_fab_drawable = normal_fab_drawable;
+                listView.setBackgroundColor(getColor(android.R.color.white));
                 ArrayList<Folder> res = new ArrayList<>();
                 for (Folder folder : folders) {
                     if (folder.checked) {
@@ -526,7 +538,6 @@ public class MainActivity extends AppCompatActivity
                 for (Folder re : res) {
                     try {
                         JSONObject jsonObject = new JSONObject();
-                        jsonObject.put("id", re.id);
                         jsonObject.put("title", re.title);
                         jsonObject.put("path", re.path);
                         jsonArray.put(jsonObject);
@@ -537,6 +548,7 @@ public class MainActivity extends AppCompatActivity
                 folderSharedPreferences.edit().putString("list", jsonArray.toString()).apply();
                 showUserFolders();
             }
+            fab.setImageDrawable(last_fab_drawable);
         }
     }
 
@@ -549,6 +561,7 @@ public class MainActivity extends AppCompatActivity
         private final TextView tv_path;
         private MediaPlayer mediaPlayer;
         private final ListView listView;
+        private final ServiceConnection serviceConnection;
 
         public PlayerContainer(View view) {
             super(view);
@@ -593,7 +606,7 @@ public class MainActivity extends AppCompatActivity
             btn_next.setEnabled(false);
             btn_prev.setEnabled(false);
             btn_toggle.setEnabled(false);
-            ServiceConnection serviceConnection = new ServiceConnection() {
+            serviceConnection = new ServiceConnection() {
                 @Override
                 public void onServiceConnected(ComponentName name, IBinder service) {
                     Log.d(TAG, "got service");
@@ -620,6 +633,12 @@ public class MainActivity extends AppCompatActivity
             bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
         }
 
+        void unbindService() {
+            if (playerService != null) {
+                playerService.unbindService(serviceConnection);
+                playerService = null;
+            }
+        }
 
         int lastIdx = -1;
 
@@ -655,6 +674,13 @@ public class MainActivity extends AppCompatActivity
                     }
                 }
                 playerService.mediaPlayer.prepareAsync();
+//                {
+//                    /* not always working */
+//                    if (lastIdx != -1)
+//                        listView.getChildAt(lastIdx).invalidate();
+//                    listView.getChildAt(playlist.idx()).invalidate();
+//                }
+                adapter.notifyDataSetChanged();
                 lastIdx = playlist.idx();
             }
             tv_title.setText(playlist.currentSongName());
@@ -743,22 +769,31 @@ public class MainActivity extends AppCompatActivity
             @Override
             public View getView(final int position, View convertView, ViewGroup parent) {
                 if (convertView == null) {
-                    convertView = mInflater.inflate(R.layout.listitem_folder, null);
+                    convertView = mInflater.inflate(R.layout.listitem_song, null);
                 }
                 final CheckBox checkBox = (CheckBox) convertView.findViewById(R.id.checkBox);
                 final TextView tv_title = (TextView) convertView.findViewById(R.id.folder_title);
+                final TextView tv_filename = (TextView) convertView.findViewById(R.id.folder_filename);
                 TextView tv_path = (TextView) convertView.findViewById(R.id.folder_path);
                 final LinearLayout container = (LinearLayout) convertView.findViewById(R.id.container_listitem);
                 if (Utils.hasNull(
                         checkBox
                         , tv_title
+                        , tv_filename
                         , tv_path
                         , container
                 )) {
                     throw new IllegalStateException("Invalid list item");
                 }
                 final Playlist.Song song = getItem(position);
-                tv_title.setText(song.name);
+                if (song.name == null) {
+                    tv_title.setText(song.filename);
+                    tv_filename.setVisibility(View.GONE);
+                } else {
+                    tv_title.setText(song.name);
+                    tv_filename.setText(song.filename);
+                    tv_filename.setVisibility(View.VISIBLE);
+                }
                 Uri uri = Uri.parse(song.path);
                 MediaMetadataRetriever mmr = new MediaMetadataRetriever();
                 mmr.setDataSource(MainActivity.this, uri);
@@ -787,7 +822,7 @@ public class MainActivity extends AppCompatActivity
                         }
                     }
                 });
-//                tv_title.setTextColor(position == playlist.idx() ? R.color.playing : R.color.not_playing);
+                tv_title.setTextColor(getColor(position == playlist.idx() ? R.color.font_playing : R.color.font_not_playing));
 //                container.setBackgroundColor(position == playlist.idx() ? R.color.bg_playing : R.color.bg_not_playing);
 //                if (position == playlist.idx()) {
 //                    Log.d(TAG, "playing this: " + song.name);
