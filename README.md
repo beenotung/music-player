@@ -21,3 +21,6 @@ Play any supported audio format music in the background without keeping the scre
 
 ## Todo
 Save "delete" option on songs without slowing down the launching speed.
+
+## Payment
+This app is free, welcome donation and contribution by reaching me in email or GitHub.
