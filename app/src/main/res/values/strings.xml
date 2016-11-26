@@ -86,4 +86,8 @@
     <string name="share">Share</string>
     <string name="feedback">Feedback</string>
     <string name="enter">Enter</string>
+    <string name="waiting_media_player_service">Waiting Media Player Service</string>
+    <string name="ready">Ready</string>
+    <string name="playing">Playing</string>
+    <string name="paused">Paused</string>
 </resources>

@@ -1,16 +1,15 @@
 package com.github.beenotung.musicplayer;
 
 import android.Manifest;
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
+import android.content.*;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.media.MediaMetadataRetriever;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.IBinder;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
@@ -44,11 +43,6 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        try {
-            Class.forName("android.os.AsyncTask");
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
         mainActivity = this;
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -80,6 +74,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     LayoutInflater mInflater;
+
 
     void initVar() {
         folderSharedPreferences = getSharedPreferences(FolderContainer.class.getName(), Context.MODE_PRIVATE);
@@ -544,25 +539,33 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    public class PlayerContainer extends Container {
-
-
+    public class PlayerContainer extends Container implements MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener {
+        final String TAG = getClass().getName();
         private Drawable oriDrawable;
+        PlayerService playerService;
+        private final ImageButton btn_toggle;
+        private final TextView tv_title;
+        private final TextView tv_path;
+        private MediaPlayer mediaPlayer;
 
         public PlayerContainer(View view) {
             super(view);
-            ImageButton btn_prev = (ImageButton) view.findViewById(R.id.btn_prev);
-            ImageButton btn_play = (ImageButton) view.findViewById(R.id.btn_play);
-            ImageButton btn_next = (ImageButton) view.findViewById(R.id.btn_next);
+            final ImageButton btn_prev = (ImageButton) view.findViewById(R.id.btn_prev);
+            btn_toggle = (ImageButton) view.findViewById(R.id.btn_play);
+            final ImageButton btn_next = (ImageButton) view.findViewById(R.id.btn_next);
+            tv_title = (TextView) view.findViewById(R.id.title);
+            tv_path = (TextView) view.findViewById(R.id.path);
             ListView listView = (ListView) view.findViewById(R.id.listview_song_list);
             if (Utils.hasNull(btn_prev
-                    , btn_play
+                    , btn_toggle
                     , btn_next
                     , listView
+                    , tv_title
+                    , tv_path
             )) {
                 throw new IllegalStateException("Invalid View");
             }
-            btn_play.setOnClickListener(new View.OnClickListener() {
+            btn_toggle.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     toggle_play();
@@ -582,6 +585,37 @@ public class MainActivity extends AppCompatActivity
             });
             adapter = new PlayerAdapter();
             listView.setAdapter(adapter);
+            tv_title.setText(getString(R.string.waiting_media_player_service));
+            tv_path.setText("");
+            Log.d(TAG, "wait for service");
+            btn_next.setEnabled(false);
+            btn_prev.setEnabled(false);
+            btn_toggle.setEnabled(false);
+            ServiceConnection serviceConnection = new ServiceConnection() {
+                @Override
+                public void onServiceConnected(ComponentName name, IBinder service) {
+                    Log.d(TAG, "got service");
+                    playerService = ((PlayerService.PlayerBinder) service).getService();
+                    mediaPlayer = playerService.mediaPlayer;
+
+                    tv_title.setText(getString(R.string.ready));
+                    btn_next.setEnabled(true);
+                    btn_prev.setEnabled(true);
+                    btn_toggle.setEnabled(true);
+
+                    mediaPlayer.setOnErrorListener(PlayerContainer.this);
+                    mediaPlayer.setOnCompletionListener(PlayerContainer.this);
+                    mediaPlayer.setOnPreparedListener(PlayerContainer.this);
+                }
+
+                @Override
+                public void onServiceDisconnected(ComponentName name) {
+                    Log.d(TAG, "failed to get service");
+                    playerService = null;
+                }
+            };
+            Intent intent = new Intent(MainActivity.this, PlayerService.class);
+            bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
         }
 
         synchronized void scanSongs() {
@@ -592,33 +626,57 @@ public class MainActivity extends AppCompatActivity
             adapter.notifyDataSetChanged();
         }
 
-        synchronized void toggle_play() {
-            if (PlayerService.playerService == null) {
-                play();
+        int lastIdx = -1;
+
+        void toggle_play() {
+            if (playerService.isPlaying()) {
+                pause();
             } else {
-                if (PlayerService.playerService.isPlaying()) {
-                    pause();
-                } else {
-                    play();
-                }
+                play();
             }
         }
 
         void play() {
             grant_permission(Manifest.permission.WAKE_LOCK);
             grant_permission(Manifest.permission.MEDIA_CONTENT_CONTROL);
-            Intent intent = new Intent(MainActivity.this, PlayerService.class);
-            intent.setAction(PlayerService.ACTION_PLAY);
-            Log.d(getClass().getName(), "try to start service: " + intent.getAction());
-            startService(intent);
+            if (lastIdx == playlist.idx()) {
+                resume();
+            } else {
+                for (; ; ) {
+                    try {
+                        playerService.mediaPlayer.setDataSource(playlist.currentSongPath());
+                        break;
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        if (playlist.songs.size() > 1) {
+                            playlist.idx(playlist.idx() + 1);
+                        } else {
+                            break;
+                        }
+                    }
+                }
+                lastIdx = playlist.idx();
+                playerService.mediaPlayer.prepareAsync();
+            }
+            tv_title.setText(playlist.currentSongName());
+            tv_path.setText(getString(R.string.playing));
+            btn_toggle.setBackgroundResource(android.R.drawable.ic_media_pause);
+        }
+
+        void resume() {
+            grant_permission(Manifest.permission.MEDIA_CONTENT_CONTROL);
+            mediaPlayer.start();
+            tv_path.setText(R.string.player);
+            btn_toggle.setBackgroundResource(android.R.drawable.ic_media_pause);
         }
 
         void pause() {
             grant_permission(Manifest.permission.MEDIA_CONTENT_CONTROL);
-            Intent intent = new Intent(MainActivity.this, PlayerService.class);
-            intent.setAction(PlayerService.ACTION_STOP);
-            Log.d(getClass().getName(), "try to start service: " + intent.getAction());
-            startService(intent);
+            if (playerService.isPlaying()) {
+                mediaPlayer.pause();
+            }
+            tv_path.setText(getString(R.string.paused));
+            btn_toggle.setBackgroundResource(android.R.drawable.ic_media_play);
         }
 
         synchronized void prev_song() {
@@ -629,6 +687,26 @@ public class MainActivity extends AppCompatActivity
         synchronized void next_song() {
             playlist.idx(playlist.idx() + 1);
             play();
+        }
+
+        @Override
+        public void onCompletion(MediaPlayer mp) {
+            mp.stop();
+            if (mp != mediaPlayer) {
+                Log.d(TAG, "set to next track");
+                mediaPlayer.setNextMediaPlayer(mp);
+            }
+        }
+
+        @Override
+        public boolean onError(MediaPlayer mp, int what, int extra) {
+            mp.reset();
+            return false;
+        }
+
+        @Override
+        public void onPrepared(MediaPlayer mp) {
+            mp.start();
         }
 
         class PlayerAdapter extends BaseAdapter {

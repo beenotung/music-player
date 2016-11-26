@@ -1,5 +1,9 @@
 package com.github.beenotung.musicplayer;
 
+import android.app.Notification;
+import android.app.PendingIntent;
+import android.app.Service;
+import android.content.Intent;
 import android.support.annotation.Nullable;
 
 import java.io.File;
@@ -32,5 +36,17 @@ public class Utils {
             }
         sizeCache.put(file.getAbsolutePath(), acc);
         return acc;
+    }
+
+    public static void startForeground(Service service, int noticeId, String msg) {
+        Notification.Builder builder = new Notification.Builder(MainActivity.mainActivity);
+        builder.setSmallIcon(android.R.drawable.ic_media_play);
+        builder.setTicker("ticker: " + System.currentTimeMillis());
+        builder.setContentText(msg);
+        Intent notificationIntent = new Intent(service, MainActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(service, 0, notificationIntent, 0);
+        builder.setContentIntent(pendingIntent);
+        Notification notification = builder.build();
+        service.startForeground(noticeId, notification);
     }
 }

@@ -44,6 +44,12 @@ class Playlist {
     ArrayList<Song> songs = new ArrayList<>();
     private int idx = 0;
 
+    public String currentSongName() {
+        if (songs.size() == 0)
+            return null;
+        return songs.get(idx()).name;
+    }
+
     public String currentSongPath() {
         if (songs.size() == 0)
             return null;
