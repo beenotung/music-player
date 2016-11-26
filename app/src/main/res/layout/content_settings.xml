@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:padding="@dimen/standard_padding"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+    <LinearLayout
+            android:padding="@dimen/half_small_margin"
+            android:layout_width="match_parent" android:layout_height="wrap_content">
+        <CheckBox
+                android:id="@+id/cb_auto_play"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                  android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                  android:text="@string/auto_play"/>
+    </LinearLayout>
+    <LinearLayout
+            android:padding="@dimen/half_small_margin"
+            android:layout_width="match_parent" android:layout_height="wrap_content">
+        <CheckBox
+                android:id="@+id/cb_random_order"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                  android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                  android:text="@string/play_in_random_order"/>
+    </LinearLayout>
+</LinearLayout>

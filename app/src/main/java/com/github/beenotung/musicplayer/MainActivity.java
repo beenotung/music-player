@@ -22,6 +22,7 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.*;
+import android.webkit.WebView;
 import android.widget.*;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -39,6 +40,7 @@ public class MainActivity extends AppCompatActivity
     public static MainActivity mainActivity;
 
     private FloatingActionButton fab;
+    private final String TAG = getClass().getName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,11 +76,12 @@ public class MainActivity extends AppCompatActivity
     }
 
     LayoutInflater mInflater;
-
+    Settings settings;
 
     void initVar() {
         folderSharedPreferences = getSharedPreferences(FolderContainer.class.getName(), Context.MODE_PRIVATE);
         mInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        settings = new Settings();
     }
 
     @Override
@@ -113,7 +116,7 @@ public class MainActivity extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
-    private final int[] containerIds = {R.id.container_scan, R.id.container_folder, R.id.container_player};
+    private final int[] containerIds = {R.id.container_folder, R.id.container_player, R.id.container_settings};
     private final View[] containerView = new View[containerIds.length];
     private final HashMap<Integer, Container> containers = new HashMap<>();
 
@@ -130,31 +133,66 @@ public class MainActivity extends AppCompatActivity
 
     public void switchNavItem(int navId) {
         // Handle navigation view item clicks here.
-        int containerId = R.id.container_player;
-        Container container = null;
+        final int containerId;
+        Utils.Supplier<Container> containerSupplier = null;
 
-        if (navId == R.id.nav_scan) {
-            setTitle(R.string.scan);
-            containerId = R.id.container_scan;
-            // TODO scan container
-        } else if (navId == R.id.nav_folder) {
+        if (navId == R.id.nav_folder) {
             setTitle(R.string.folder);
             containerId = R.id.container_folder;
-            container = new FolderContainer(findViewById(containerId));
+            containerSupplier = new Utils.Supplier<Container>() {
+                @Override
+                public Container apply() {
+                    return new FolderContainer(findViewById(containerId));
+                }
+            };
         } else if (navId == R.id.nav_player) {
             setTitle(R.string.player);
             containerId = R.id.container_player;
-            container = new PlayerContainer(findViewById(containerId));
+            containerSupplier = new Utils.Supplier<Container>() {
+                @Override
+                public Container apply() {
+                    return new PlayerContainer(findViewById(containerId));
+                }
+            };
         } else if (navId == R.id.nav_settings) {
             setTitle(R.string.settings);
+            containerId = R.id.container_settings;
+            containerSupplier = new Utils.Supplier<Container>() {
+                @Override
+                public Container apply() {
+                    return new SettingsContainer(findViewById(containerId));
+                }
+            };
+        } else if (navId == R.id.nav_about) {
+            setTitle(R.string.feedback);
+            containerId = 0;
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/beenotung/music-player/blob/master/README.md"));
+            startActivity(browserIntent);
         } else if (navId == R.id.nav_share) {
             setTitle(R.string.share);
+            containerId = 0;
+            Intent sendIntent = new Intent();
+            sendIntent.setAction(Intent.ACTION_SEND);
+            sendIntent.putExtra(Intent.EXTRA_TEXT, "https://github.com/beenotung/music-player");
+            sendIntent.setType("text/plain");
+            startActivity(sendIntent);
         } else if (navId == R.id.nav_feedback) {
             setTitle(R.string.feedback);
+            containerId = 0;
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/beenotung/music-player/issues"));
+            startActivity(browserIntent);
+        } else {
+            containerId = R.id.container_player;
         }
 
+        Container container = null;
         if (containers.get(containerId) == null) {
-            containers.put(containerId, container);
+            if (containerSupplier != null) {
+                container = containerSupplier.apply();
+                if (container != null) {
+                    containers.put(containerId, container);
+                }
+            }
         } else {
             container = containers.get(containerId);
         }
@@ -171,6 +209,7 @@ public class MainActivity extends AppCompatActivity
             Container c = containers.get(containerId);
             if (c != null) {
                 if (c == container) {
+                    Log.d(TAG, "show this" + c);
                     c.onEnter();
                 } else {
                     c.onLeave();
@@ -626,12 +665,20 @@ public class MainActivity extends AppCompatActivity
         }
 
         synchronized void prev_song() {
-            playlist.idx(playlist.idx() - 1);
+            if (settings.is_random_order()) {
+                playlist.idx(lastIdx);
+            } else {
+                playlist.idx(playlist.idx() - 1);
+            }
             play();
         }
 
         synchronized void next_song() {
-            playlist.idx(playlist.idx() + 1);
+            if (settings.is_random_order()) {
+                playlist.idx(new Random().nextInt());
+            } else {
+                playlist.idx(playlist.idx() + 1);
+            }
             play();
         }
 
@@ -642,7 +689,9 @@ public class MainActivity extends AppCompatActivity
                 Log.d(TAG, "set to next track");
                 mediaPlayer.setNextMediaPlayer(mp);
             }
-            next_song();
+            if (settings.is_auto_play()) {
+                next_song();
+            }
         }
 
         @Override
@@ -777,5 +826,59 @@ public class MainActivity extends AppCompatActivity
             playlist.songs = xs;
             adapter.notifyDataSetChanged();
         }
+    }
+
+    class Settings {
+        SharedPreferences settingsSharedPreferences = getSharedPreferences(SettingsContainer.class.getName(), Context.MODE_PRIVATE);
+
+        boolean is_auto_play() {
+            return settings.settingsSharedPreferences.getBoolean("auto_play", true);
+        }
+
+        boolean is_random_order() {
+            return settings.settingsSharedPreferences.getBoolean("random_order", false);
+        }
+    }
+
+
+    class SettingsContainer extends Container {
+        private final CheckBox cb_auto_play;
+        private final CheckBox cb_random_order;
+
+        public SettingsContainer(View view) {
+            super(view);
+            cb_auto_play = (CheckBox) view.findViewById(R.id.cb_auto_play);
+            cb_random_order = (CheckBox) view.findViewById(R.id.cb_random_order);
+            if (Utils.hasNull(
+                    cb_auto_play
+                    , cb_random_order
+            )) {
+                throw new IllegalStateException("Invalid layout");
+            }
+            cb_auto_play.setChecked(settings.is_auto_play());
+            cb_random_order.setChecked(settings.is_random_order());
+        }
+
+        @Override
+        void onLeave() {
+            super.onLeave();
+            settings.settingsSharedPreferences.edit()
+                    .putBoolean("auto_play", cb_auto_play.isChecked())
+                    .putBoolean("random_order", cb_random_order.isChecked())
+                    .apply();
+        }
+    }
+
+    class AboutContainer extends Container {
+
+        private final WebView webView;
+
+        public AboutContainer(View view) {
+            super(view);
+            webView = (WebView) view.findViewById(R.id.webview_about);
+            grant_permission(Manifest.permission.INTERNET);
+            webView.loadUrl("https://github.com/beenotung/music-player/blob/master/README.md");
+        }
+
     }
 }

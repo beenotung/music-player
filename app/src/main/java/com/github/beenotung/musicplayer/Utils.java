@@ -49,4 +49,8 @@ public class Utils {
         Notification notification = builder.build();
         service.startForeground(noticeId, notification);
     }
+
+    public static interface Supplier<A> {
+        A apply();
+    }
 }

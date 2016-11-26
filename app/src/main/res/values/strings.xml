@@ -90,4 +90,7 @@
     <string name="ready">Ready</string>
     <string name="playing">Playing</string>
     <string name="paused">Paused</string>
+    <string name="auto_play">Auto Play</string>
+    <string name="play_in_random_order">Play in Random Order</string>
+    <string name="about">About</string>
 </resources>

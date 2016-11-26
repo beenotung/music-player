@@ -3,10 +3,6 @@
 
     <group android:checkableBehavior="single">
         <item
-                android:id="@+id/nav_scan"
-                android:icon="@android:drawable/ic_search_category_default"
-                android:title="@string/scan"/>
-        <item
                 android:id="@+id/nav_folder"
                 android:icon="@drawable/ic_menu_gallery"
                 android:title="@string/folder"/>
@@ -22,6 +18,10 @@
 
     <item android:title="@string/communicate">
         <menu>
+            <item
+                    android:id="@+id/nav_about"
+                    android:icon="@drawable/github_6_xxl"
+                    android:title="@string/about"/>
             <item
                     android:id="@+id/nav_share"
                     android:icon="@drawable/ic_menu_share"
