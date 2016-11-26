@@ -765,6 +765,11 @@ public class MainActivity extends AppCompatActivity
                 String durationStr = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
                 int sec = Integer.parseInt(durationStr) / 1000;
                 StringBuilder duration = new StringBuilder();
+                if (sec > 3600) {
+                    duration.append(sec / 3600);
+                    duration.append(" hr. ");
+                    sec = sec % 3600;
+                }
                 if (sec > 60) {
                     duration.append(sec / 60);
                     duration.append(" min. ");
