@@ -22,8 +22,8 @@ Play any supported audio format music in the background without keeping the scre
 ## Todo
 Save "delete" option on songs without slowing down the launching speed.
 
-## Payment
-This app is free, welcome donation and contribution by reaching me in email or GitHub.
+## Contact / Feedback
+Feel free to create feature requests or report bugs on https://github.com/beenotung/music-player
 
 ## License
 GPL-3.0 (GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007)
