@@ -2,7 +2,7 @@ Have you ever tried to add a music to playlist from apps like Dropbox?
 They store the files internally, resulting the music player missing them (e.g. The Samsung music player) ٩(°̀ᗝ°́)و
 
 Therefore everytime I sync some music via Dropbox, I need to move the file to a public area (e.g. $HOME/Music) from a nested location ($HOME/Android/data/com.dropbox...../).
-This is cuased by security policy starting from Android 6. This is really annoying (ーー゛) 
+This is caused by security policy starting from Android 6. This is really annoying (ーー゛) 
 Therefore, I made this music player to solve this problem.
 Feel free to try it :)
 
