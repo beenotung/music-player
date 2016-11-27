@@ -1,0 +1,18 @@
+有沒有試過 download 了歌之後，手機的播放器掃不到它?
+明明用 file explorer 播得到，但是 player 就是掃不到 ٩(°̀ᗝ°́)و
+player 又不可以直接加 folder (＿´Д｀)
+
+Oh, 那首歌在 Dropbox 的 folder 下，我要把他搬到 public area (Android 6 security policy)，每次 sync 完都要搬…(ーー゛)
+
+不！不必這麽麻煩！
+
+Check out "Music Player" for free! You can play any music files in background :)
+
+Google Play:
+https://play.google.com/store/apps/details?id=com.github.beenotung.musicplayer
+
+Direct Download:
+https://github.com/beenotung/music-player/blob/master/release/music-player-release.apk?raw=true
+
+Website:
+https://github.com/beenotung/music-player

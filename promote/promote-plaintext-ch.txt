@@ -1,0 +1,18 @@
+有没有试下下载歌曲之后，手机的播放器扫不到它？
+明明用文件浏览器播得到，但是播放器就是扫不到 ٩(°̀ᗝ°́)و
+播放器又不给直接加进播放列表 (＿´Д｀)
+
+哦！那首歌在Dropbox的文件夹下，我要把他搬到别处（安卓6 的安全措施），每次同步完都要搬…(ーー゛)
+
+不！不必这么麻烦！
+
+免费用“音乐播放器”！ 您可以在后台播放任何音乐文件:)
+
+Google Play：
+https://play.google.com/store/apps/details?id=com.github.beenotung.musicplayer
+
+直接下载：
+https://github.com/beenotung/music-player/blob/master/release/music-player-release.apk?raw=true
+
+网站：
+https://github.com/beenotung/music-player
