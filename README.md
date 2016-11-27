@@ -18,6 +18,7 @@ Play any supported audio format music in the background without keeping the scre
  - Play music under any folder
  - Continue playing when working on other app / screen off
  - Show meta song name (limited detection on garbled code, show filename as fallback)
+ - Custom share text
 
 ## Todo
 Save "delete" option on songs without slowing down the launching speed.
