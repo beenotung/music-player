@@ -121,6 +121,7 @@ public class Playlist {
     }
 
     final Object songsLock = new Object();
+    boolean checkedName = false;
     ArrayList<Song> songs = new ArrayList<>();
     private int idx = 0;
 
@@ -161,16 +162,21 @@ public class Playlist {
     }
 
     void reset() {
-        songs.clear();
+        synchronized (songsLock) {
+            checkedName = false;
+            songs.clear();
+        }
     }
 
     final String TAG_ADD = getClass().getName() + ":ADD";
 
     private void addFromFolder(File file) {
         if (file.isDirectory()) {
-            for (File f : file.listFiles()) {
-                addFromFolder(f);
-            }
+            File[] files = file.listFiles();
+            if (files != null)
+                for (File f : files) {
+                    addFromFolder(f);
+                }
         } else {
             String[] xs = file.getName().split(".");
             int idx = file.getName().lastIndexOf('.');
@@ -212,7 +218,8 @@ public class Playlist {
 
     void scanSongs(ArrayList<Folder> folders) {
         synchronized (songsLock) {
-            playlist.reset();
+            checkedName = false;
+            songs.clear();
             for (Folder folder : folders) {
                 playlist.addFromFolder(folder.path);
             }
@@ -258,6 +265,9 @@ public class Playlist {
         songs = xs;
     }
 
+    /**
+     * @deprecated slow
+     * */
     void hideFiles(Set<Long> ids, SharedPreferences sharedPreferences) throws IOException, NoSuchAlgorithmException {
         HashSet<String> ss = new HashSet<>();
         for (Long id : ids) {

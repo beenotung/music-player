@@ -14,12 +14,14 @@
                 android:text="Title"
                 android:textAppearance="@style/TextAppearance.AppCompat.Large"
                 android:layout_gravity="center"
+                android:textAlignment="center"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" android:id="@+id/tv_title"/>
         <TextView
                 android:text="Filename"
-                android:layout_gravity="center"
                 android:textAppearance="@style/TextAppearance.AppCompat.Small"
+                android:layout_gravity="center"
+                android:textAlignment="center"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" android:id="@+id/tv_filename"/>
         <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content"
@@ -44,9 +46,9 @@
                     android:id="@+id/btn_next"/>
         </LinearLayout>
     </LinearLayout>
-    <include android:id="@+id/listview_song_list"
-             layout="@layout/content_folder"
-             android:layout_above="@+id/layout_control"
-             android:layout_height="match_parent"
-             android:layout_width="match_parent"/>
+    <include
+            layout="@layout/content_listview"
+            android:layout_above="@+id/layout_control"
+            android:layout_height="match_parent"
+            android:layout_width="match_parent"/>
 </RelativeLayout>
