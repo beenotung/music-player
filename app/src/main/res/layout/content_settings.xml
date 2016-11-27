@@ -24,4 +24,25 @@
                   android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                   android:text="@string/play_in_random_order"/>
     </LinearLayout>
+    <LinearLayout
+            android:padding="@dimen/half_small_margin"
+            android:layout_width="match_parent" android:layout_height="wrap_content">
+        <CheckBox
+                android:visibility="invisible"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                      android:orientation="vertical">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                      android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                      android:text="@string/share_text"/>
+            <EditText android:layout_width="wrap_content" android:layout_height="wrap_content"
+                      android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                      android:id="@+id/et_share_text"
+                      android:text="Share Text Content"/>
+            <Button android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:textAllCaps="false"
+                    android:id="@+id/btn_reset_share_text"
+                    android:text="@string/reset_share_text"/>
+        </LinearLayout>
+    </LinearLayout>
 </LinearLayout>

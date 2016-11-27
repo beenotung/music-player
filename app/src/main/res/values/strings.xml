@@ -95,4 +95,15 @@
     <string name="about">About</string>
     <string name="author">Beeno Tung</string>
     <string name="removed_from_list">Removed From List</string>
+    <string name="default_share_text">
+Checkout \"%1$s\" for free! You can play any music files in background :)\n
+\n
+Google Play:\n
+https://play.google.com/store/apps/details?id=com.github.beenotung.musicplayer\n
+\n
+Website:\n
+https://github.com/beenotung/music-player\n
+    </string>
+    <string name="share_text">Share Text</string>
+    <string name="reset_share_text">Reset share text</string>
 </resources>

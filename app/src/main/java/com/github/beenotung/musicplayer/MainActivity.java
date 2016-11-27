@@ -28,7 +28,6 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.NoRouteToHostException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
@@ -220,9 +219,12 @@ public class MainActivity extends AppCompatActivity
             containerId = defaultContainerId;
             Intent sendIntent = new Intent();
             sendIntent.setAction(Intent.ACTION_SEND);
-            sendIntent.putExtra(Intent.EXTRA_TEXT, "https://github.com/beenotung/music-player");
+            sendIntent.putExtra(Intent.EXTRA_TEXT, settings.getShareText());
             sendIntent.setType("text/plain");
-            startActivity(sendIntent);
+            if (sendIntent.resolveActivity(getPackageManager()) != null)
+                startActivity(Intent.createChooser(sendIntent, getString(R.string.share)));
+            else
+                startActivity(sendIntent);
         } else if (navId == R.id.nav_feedback) {
 //            setTitle(R.string.feedback);
             containerId = defaultContainerId;
@@ -264,8 +266,7 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-
-    Container activeContainer;
+    private Container activeContainer;
 
     abstract class Container {
         public final View view;
@@ -728,7 +729,10 @@ public class MainActivity extends AppCompatActivity
 
         void unbindService() {
             if (playerService != null) {
-                playerService.unbindService(serviceConnection);
+                try {
+                    playerService.unbindService(serviceConnection);
+                } catch (IllegalArgumentException e) {
+                }
                 playerService = null;
             }
         }
@@ -1021,25 +1025,54 @@ public class MainActivity extends AppCompatActivity
         boolean is_random_order() {
             return settings.settingsSharedPreferences.getBoolean("random_order", false);
         }
+
+        String getShareText() {
+            return settingsSharedPreferences.getString("share_text", getDefaultShareText());
+        }
+
+        String getDefaultShareText() {
+            StringBuilder res = new StringBuilder();
+            boolean first = true;
+            for (String s : getString(R.string.default_share_text, getString(R.string.app_name)).split("\n")) {
+                if (first) {
+                    first = false;
+                } else {
+                    res.append("\n");
+                }
+                res.append(s.trim());
+            }
+            return res.toString();
+        }
     }
 
 
     class SettingsContainer extends Container {
         private final CheckBox cb_auto_play;
         private final CheckBox cb_random_order;
+        private final EditText et_share_text;
 
         public SettingsContainer(View view) {
             super(view);
             cb_auto_play = (CheckBox) view.findViewById(R.id.cb_auto_play);
             cb_random_order = (CheckBox) view.findViewById(R.id.cb_random_order);
+            et_share_text = (EditText) view.findViewById(R.id.et_share_text);
+            Button btn_reset_share_text = (Button) view.findViewById(R.id.btn_reset_share_text);
             if (Utils.hasNull(
                     cb_auto_play
                     , cb_random_order
+                    , et_share_text
             )) {
                 throw new IllegalStateException("Invalid layout");
             }
             cb_auto_play.setChecked(settings.is_auto_play());
             cb_random_order.setChecked(settings.is_random_order());
+            et_share_text.setText(settings.getShareText());
+            btn_reset_share_text.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    et_share_text.setText(settings.getDefaultShareText());
+                }
+            });
         }
 
         @Override
@@ -1054,6 +1087,7 @@ public class MainActivity extends AppCompatActivity
             settings.settingsSharedPreferences.edit()
                     .putBoolean("auto_play", cb_auto_play.isChecked())
                     .putBoolean("random_order", cb_random_order.isChecked())
+                    .putString("share_text", et_share_text.getText().toString())
                     .apply();
             fab.setVisibility(View.VISIBLE);
         }
