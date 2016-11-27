@@ -28,3 +28,7 @@ Feel free to create feature requests or report bugs on https://github.com/beenot
 
 ## License
 GPL-3.0 (GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007)
+
+## Distribution
+ - [Google Play](https://play.google.com/store/apps/details?id=com.github.beenotung.musicplayer)
+ - [Direct APK](https://github.com/beenotung/music-player/blob/master/release/music-player-release.apk?raw=1)
