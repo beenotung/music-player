@@ -21,7 +21,9 @@ Play any supported audio format music in the background without keeping the scre
  - Custom share text
 
 ## Todo
-Save "delete" option on songs without slowing down the launching speed.
+ - Save "delete" option on songs without slowing down the launching speed
+ - Auto pause when media volumn is changed to zero
+ - Auto pause when bluetooth is disconnected (iff bluetooth was connected)
 
 ## Contact / Feedback
 Feel free to create feature requests or report bugs on https://github.com/beenotung/music-player
