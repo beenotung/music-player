@@ -2,7 +2,7 @@
 Play music under third-party app folder in background
 
 ## Version
-1.1.1
+1.2.0
 
 ## Preface
 There are many music players for free. However, none of them (that I've tried) can play music storing in third party folder (e.g. under Dropbox folder).
@@ -20,11 +20,13 @@ Play any supported audio format music in the background without keeping the scre
  - Show meta song name (limited detection on garbled code, show filename as fallback)
  - Custom share text
 
+## New Features
+ - Search songs in playlist by filename / meta title
+
 ## Todo
  - Save "delete" option on songs without slowing down the launching speed
- - Auto pause when media volumn is changed to zero
+ - Auto pause when media volume is changed to zero
  - Auto pause when bluetooth is disconnected (iff bluetooth was connected)
- - Search songs in playlist by filename / meta title
 
 ## Contact / Feedback
 Feel free to create feature requests or report bugs on https://github.com/beenotung/music-player
