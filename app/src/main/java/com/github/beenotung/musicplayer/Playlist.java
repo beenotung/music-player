@@ -70,6 +70,16 @@ public class Playlist {
             }
         }
 
+        public String displayName() {
+            if (title != null)
+                return title;
+            return filename;
+        }
+
+        public boolean containsName(String name) {
+            return filename.contains(name) || (title != null && title.contains(name));
+        }
+
         /* deferred task, to speed up launch speed */
         void checkName() {
             MediaMetadataRetriever mmr = new MediaMetadataRetriever();
@@ -123,43 +133,6 @@ public class Playlist {
     final Object songsLock = new Object();
     boolean checkedName = false;
     ArrayList<Song> songs = new ArrayList<>();
-    private int idx = 0;
-
-    @Nullable
-    public String currentSongName() {
-        if (songs.size() == 0)
-            return null;
-        Song song = songs.get(idx());
-        return song.title == null
-                ? song.filename
-                : song.title;
-    }
-
-    @Nullable
-    public String currentSongPath() {
-        if (songs.size() == 0)
-            return null;
-        return songs.get(idx()).path;
-    }
-
-    @Nullable
-    public Song currentSong() {
-        if (songs.size() == 0)
-            return null;
-        return songs.get(idx());
-    }
-
-    int idx() {
-        if (songs.size() == 0)
-            return -1;
-        return idx % songs.size();
-    }
-
-    void idx(int newVal) {
-        if (newVal != idx) {
-            idx = newVal % songs.size();
-        }
-    }
 
     void reset() {
         synchronized (songsLock) {

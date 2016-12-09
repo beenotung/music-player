@@ -7,18 +7,22 @@ import android.graphics.drawable.Drawable;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.net.Uri;
-import android.os.*;
+import android.os.Bundle;
+import android.os.Environment;
+import android.os.IBinder;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.util.Log;
-import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
 import android.view.*;
 import android.webkit.WebView;
 import android.widget.*;
@@ -723,6 +727,7 @@ public class MainActivity extends AppCompatActivity
         private final TextView tv_filename;
         private MediaPlayer mediaPlayer;
         private final ListView listView;
+        private final TextView tv_search;
         private final ServiceConnection serviceConnection;
 
         public PlayerContainer(View view) {
@@ -734,6 +739,7 @@ public class MainActivity extends AppCompatActivity
             tv_filename = (TextView) view.findViewById(R.id.tv_filename);
             tv_list_desc = (TextView) view.findViewById(R.id.tv_list_desc);
             listView = (ListView) view.findViewById(R.id.listview);
+            tv_search = (TextView) view.findViewById(R.id.search_text);
             if (Utils.hasNull(btn_prev
                     , btn_toggle
                     , btn_next
@@ -770,6 +776,22 @@ public class MainActivity extends AppCompatActivity
             btn_next.setEnabled(false);
             btn_prev.setEnabled(false);
             btn_toggle.setEnabled(false);
+            tv_search.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                }
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                }
+
+                @Override
+                public void afterTextChanged(Editable s) {
+                    adapter.notifyDataSetChanged();
+                }
+            });
             serviceConnection = new ServiceConnection() {
                 @Override
                 public void onServiceConnected(ComponentName name, IBinder service) {
@@ -814,8 +836,6 @@ public class MainActivity extends AppCompatActivity
             }
         }
 
-        int lastIdx = -1;
-
         void toggle_play() {
             if (playerService.isPlaying()) {
                 pause();
@@ -839,7 +859,7 @@ public class MainActivity extends AppCompatActivity
         void play() {
             grant_permission(Manifest.permission.WAKE_LOCK);
             grant_permission(Manifest.permission.MEDIA_CONTENT_CONTROL);
-            if (lastIdx == playlist.idx()) {
+            if (adapter.lastPosition == adapter.currentPosition) {
                 resume();
             } else {
                 if (playerService.isPlaying()) {
@@ -848,14 +868,14 @@ public class MainActivity extends AppCompatActivity
                 mediaPlayer.reset();
                 for (; ; ) {
                     try {
-                        playerService.mediaPlayer.setDataSource(playlist.currentSongPath());
+                        playerService.mediaPlayer.setDataSource(adapter.getItem(adapter.currentPosition).path);
                         break;
                     } catch (IOException e) {
                         e.printStackTrace();
-                        if (playlist.songs.size() > 1) {
-                            playlist.idx(playlist.idx() + 1);
-                        } else {
+                        if (adapter.items.isEmpty()) {
                             break;
+                        } else {
+                            adapter.currentPosition = (adapter.currentPosition + 1) % adapter.items.size();
                         }
                     }
                 }
@@ -867,9 +887,9 @@ public class MainActivity extends AppCompatActivity
 //                    listView.getChildAt(playlist.idx()).invalidate();
 //                }
                 adapter.notifyDataSetChanged();
-                lastIdx = playlist.idx();
+                adapter.lastPosition = adapter.currentPosition;
             }
-            Playlist.Song song = playlist.currentSong();
+            Playlist.Song song = adapter.getItem(adapter.currentPosition);
             if (song == null) {
                 throw new IllegalStateException("Current song is null: Race Problem?");
             }
@@ -898,18 +918,19 @@ public class MainActivity extends AppCompatActivity
 
         synchronized void prev_song() {
             if (settings.is_random_order()) {
-                playlist.idx(lastIdx);
+                /* TODO support multiple backtrack */
+                adapter.currentPosition = adapter.lastPosition;
             } else {
-                playlist.idx(playlist.idx() - 1);
+                adapter.currentPosition--;
             }
             play();
         }
 
         synchronized void next_song() {
             if (settings.is_random_order()) {
-                playlist.idx(new Random().nextInt());
+                adapter.currentPosition = new Random().nextInt(adapter.items.size());
             } else {
-                playlist.idx(playlist.idx() + 1);
+                adapter.currentPosition++;
             }
             play();
         }
@@ -938,20 +959,45 @@ public class MainActivity extends AppCompatActivity
         }
 
         class PlayerAdapter extends BaseAdapter {
+            private final ArrayList<Playlist.Song> items = (ArrayList<Playlist.Song>) playlist.songs.clone();
+            int lastPosition = -1;
+            int currentPosition = 0;
+            String searchText = "";
+
+            @Override
+            public void notifyDataSetChanged() {
+                if (!searchText.equals(tv_search.getText())) {
+                    items.clear();
+                    searchText = String.valueOf(tv_search.getText()).trim();
+                    if (searchText.length() == 0) {
+                        items.addAll(playlist.songs);
+                    } else {
+                        for (Playlist.Song song : playlist.songs) {
+                            if (song.filename.contains(searchText) || (song.title != null && song.title.contains(searchText))) {
+                                items.add(song);
+                            }
+                        }
+                    }
+                }
+                super.notifyDataSetChanged();
+            }
+
             @Override
             public int getCount() {
-                return playlist.songs.size();
+                return items.size();
             }
 
             @Override
             public Playlist.Song getItem(int position) {
-                return playlist.songs.get(position);
+                while (position < 0)
+                    position += items.size();
+                return items.get(position % items.size());
             }
 
             @Override
             public long getItemId(int position) {
                 try {
-                    return playlist.songs.get(position).id();
+                    return getItem(position).id();
                 } catch (NoSuchAlgorithmException | IOException e) {
                     e.printStackTrace();
                     return position;
@@ -1007,18 +1053,15 @@ public class MainActivity extends AppCompatActivity
                         }
                     }
                 });
-                tv_title.setTextColor(getColor(position == playlist.idx() ? R.color.font_playing : R.color.font_not_playing));
-//                container.setBackgroundColor(position == playlist.idx() ? R.color.bg_playing : R.color.bg_not_playing);
-//                if (position == playlist.idx()) {
-//                    Log.d(TAG, "playing this: " + song.title);
-//                }
+                tv_title.setTextColor(getColor(position == currentPosition ? R.color.font_playing : R.color.font_not_playing));
                 convertView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        if (position == playlist.idx()) {
+                        if (position == currentPosition) {
                             return;
                         }
-                        playlist.idx(position);
+                        lastPosition = currentPosition;
+                        currentPosition = position;
                         play();
                     }
                 });
