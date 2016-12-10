@@ -27,6 +27,7 @@ Play any supported audio format music in the background without keeping the scre
  - Save "delete" option on songs without slowing down the launching speed
  - Auto pause when media volume is changed to zero
  - Auto pause when bluetooth is disconnected (iff bluetooth was connected)
+ - Prev/Next Song control from bluetooth speaker/headset
  - Custom Profile (a set of folders)
 
 ## Contact / Feedback
