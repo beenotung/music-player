@@ -3,19 +3,18 @@
                 xmlns:tools="http://schemas.android.com/tools"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
-    <RelativeLayout android:layout_width="match_parent" android:layout_height="match_parent"
-                    android:id="@+id/loading_container">
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                  android:id="@+id/tv_list_desc"
-                  android:layout_centerInParent="true"
-                  android:textAlignment="center"
-                  android:textAppearance="@style/TextAppearance.AppCompat.Large"
-                  android:text="@string/loading"/>
-    </RelativeLayout>
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+              android:id="@+id/tv_list_desc"
+              android:layout_centerInParent="true"
+              android:textAlignment="center"
+              android:textAppearance="@style/TextAppearance.AppCompat.Large"
+              android:text="@string/loading"/>
     <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent"
                   android:orientation="vertical"
-                  android:id="@+id/listview_container">
+                  android:focusableInTouchMode="true"
+                  android:id="@+id/container_listview">
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                      android:id="@+id/container_search"
                       android:layout_margin="@dimen/small_margin">
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                       android:text="@string/search"/>

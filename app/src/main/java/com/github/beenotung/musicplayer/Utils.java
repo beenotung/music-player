@@ -4,6 +4,7 @@ import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import java.io.File;
@@ -19,6 +20,12 @@ public class Utils {
                 return true;
         }
         return false;
+    }
+
+    public static void checkNull(@NonNull RuntimeException e, @Nullable Object... xs) {
+        if (hasNull(xs)) {
+            throw e;
+        }
     }
 
     static HashMap<String, Long> sizeCache = new HashMap<>();

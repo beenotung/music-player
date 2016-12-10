@@ -518,12 +518,15 @@ public class MainActivity extends AppCompatActivity
             super(view);
             listView = (ListView) view.findViewById(R.id.listview);
             tv_list_desc = (TextView) view.findViewById(R.id.tv_list_desc);
+            View container_search = view.findViewById(R.id.container_search);
             if (Utils.hasNull(
                     listView
                     , tv_list_desc
+                    , container_search
             )) {
                 throw new IllegalStateException("Invalid view");
             }
+            container_search.setVisibility(View.GONE);
             adapter = new FolderAdapter();
             listView.setAdapter(adapter);
             mInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -591,8 +594,6 @@ public class MainActivity extends AppCompatActivity
             adapter.notifyDataSetChanged();
         }
 
-        private boolean hacking = false;
-
         void updateFabImage() {
             switch (mode) {
                 case MODE_NORMAL:
@@ -612,7 +613,6 @@ public class MainActivity extends AppCompatActivity
         @Override
         void onEnter() {
             super.onEnter();
-            hacking = false;
             updateFabImage();
             fab.post(new Runnable() {
                 @Override
@@ -966,6 +966,8 @@ public class MainActivity extends AppCompatActivity
 
             @Override
             public void notifyDataSetChanged() {
+                tv_list_desc.setText(R.string.loading);
+                tv_list_desc.setVisibility(View.VISIBLE);
                 if (!searchText.equals(tv_search.getText())) {
                     items.clear();
                     searchText = String.valueOf(tv_search.getText()).trim();
@@ -980,6 +982,7 @@ public class MainActivity extends AppCompatActivity
                     }
                 }
                 super.notifyDataSetChanged();
+                tv_list_desc.setVisibility(View.GONE);
             }
 
             @Override
