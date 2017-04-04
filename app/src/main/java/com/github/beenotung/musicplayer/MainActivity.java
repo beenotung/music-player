@@ -857,6 +857,10 @@ public class MainActivity extends AppCompatActivity
         }
 
         void play() {
+            if (adapter.items.size() == 0) {
+                Toast.makeText(MainActivity.this, R.string.empty_playlist, Toast.LENGTH_SHORT).show();
+                return;
+            }
             grant_permission(Manifest.permission.WAKE_LOCK);
             grant_permission(Manifest.permission.MEDIA_CONTENT_CONTROL);
             if (adapter.lastPosition == adapter.currentPosition) {
