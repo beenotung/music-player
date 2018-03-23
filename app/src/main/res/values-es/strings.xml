@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Reproductor de música</string>
+    <string name="action_settings">Configuraciones</string>
+    <string name="scan">Escanear</string>
+    <string name="scanning">Exploración</string>
+    <string name="folder">Carpeta</string>
+    <string name="select_folder">Seleccione la carpeta</string>
+    <string name="player">reproductor de música</string>
+    <string name="settings">Configuraciones</string>
+    <string name="communicate">Comunicar</string>
+    <string name="share">Compartir</string>
+    <string name="feedback">Realimentación</string>
+    <string name="waiting_media_player_service">Esperando el servicio de reproductor multimedia</string>
+    <string name="ready">Preparado</string>
+    <string name="playing">Jugando</string>
+    <string name="paused">Pausado</string>
+    <string name="auto_play">Auto-reproducción</string>
+    <string name="play_in_random_order">Jugar en orden aleatorio</string>
+    <string name="about">Acerca de</string>
+    <string name="removed_from_list">Aboutav</string>
+    <string name="share_text">Compartir texto</string>
+    <string name="reset_share_text">Restablecer compartir texto</string>
+    <string name="empty_playlist">La lista de reproducción está vacía. Toque ≡ para seleccionar carpetas.</string>
+    <string name="empty_folder">No ha seleccionado ninguna carpeta.</string>
+    <string name="loading">Cargando</string>
+    <string name="search">Buscar</string>
+</resources>
