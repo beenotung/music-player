@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Lecteur de musique</string>
+    <string name="action_settings">Paramètres</string>
+    <string name="scan">Balayage</string>
+    <string name="scanning">Scannez maintenant</string>
+    <string name="folder">Dossier</string>
+    <string name="select_folder">Sélectionner le dossier</string>
+    <string name="player">Lecteur de musique</string>
+    <string name="settings">Paramètres</string>
+    <string name="communicate">Communiquer</string>
+    <string name="share">Partager</string>
+    <string name="feedback">Retour d\'information</string>
+    <string name="waiting_media_player_service">Service de lecteur multimédia en attente</string>
+    <string name="ready">Prêt</string>
+    <string name="playing">En jouant</string>
+    <string name="paused">En pause</string>
+    <string name="auto_play">Lecture automatique</string>
+    <string name="play_in_random_order">Jouer dans un ordre aléatoire</string>
+    <string name="about">Sur</string>
+    <string name="removed_from_list">Supprimé de la liste</string>
+    <string name="share_text">Supprimé de la liste...</string>
+    <string name="reset_share_text">Réinitialiser le contenu</string>
+    <string name="empty_playlist">Réinitialiser le contenu...</string>
+    <string name="empty_folder">Vous n\'avez sélectionné aucun dossier.</string>
+    <string name="loading">Chargement</string>
+    <string name="search">Chercher</string>
+</resources>

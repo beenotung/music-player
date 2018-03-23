@@ -3,7 +3,7 @@
     <string name="app_name">Reproductor de música</string>
     <string name="action_settings">Configuraciones</string>
     <string name="scan">Escanear</string>
-    <string name="scanning">Exploración</string>
+    <string name="scanning">Escanear ahora</string>
     <string name="folder">Carpeta</string>
     <string name="select_folder">Seleccione la carpeta</string>
     <string name="player">reproductor de música</string>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Music Player</string>
-    <string name="scanning">Scannen</string>
+    <string name="scanning">Jetzt scannen</string>
     <string name="folder">Mappe</string>
     <string name="select_folder">Ordner auswählen</string>
     <string name="player">Musikspieler</string>
@@ -23,4 +23,6 @@
     <string name="empty_folder">Sie haben keinen Ordner ausgewählt.</string>
     <string name="loading">Wird geladen</string>
     <string name="search">Suche</string>
+    <string name="scan">Scan</string>
+    <string name="action_settings">die Einstellungen</string>
 </resources>
