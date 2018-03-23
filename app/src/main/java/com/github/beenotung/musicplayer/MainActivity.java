@@ -563,6 +563,18 @@ public class MainActivity extends AppCompatActivity
                 folders.add(new Folder(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES)));
                 folders.add(new Folder(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)));
                 folders.add(new Folder(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)));
+                {
+                    File dropbox = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/Android/data/com.dropbox.android");
+                    if (dropbox.exists()) {
+                        folders.add(new Folder(dropbox));
+                    }
+                }
+                {
+                    File mega = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/MEGA");
+                    if (mega.exists()) {
+                        folders.add(new Folder(mega));
+                    }
+                }
                 Collections.sort(folders, new Comparator<Folder>() {
                     @Override
                     public int compare(Folder lhs, Folder rhs) {
