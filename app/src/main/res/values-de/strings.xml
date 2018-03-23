@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Music Player</string>
+    <string name="scanning">Scannen</string>
+    <string name="folder">Mappe</string>
+    <string name="select_folder">Ordner auswählen</string>
+    <string name="player">Musikspieler</string>
+    <string name="settings">die Einstellungen</string>
+    <string name="communicate">Kommunizieren</string>
+    <string name="share">Aktie</string>
+    <string name="feedback">Feedback</string>
+    <string name="waiting_media_player_service">Wartender Media Player Dienst</string>
+    <string name="ready">Bereit</string>
+    <string name="playing">Spielen</string>
+    <string name="paused">Pausiert</string>
+    <string name="auto_play">Automatisches Abspielen</string>
+    <string name="play_in_random_order">Spielen Sie in zufälliger Reihenfolge</string>
+    <string name="about">Über</string>
+    <string name="removed_from_list">Aus Liste entfernt</string>
+    <string name="share_text">Teilen Sie Text</string>
+    <string name="reset_share_text">Zurücksetzen des freigegebenen Texts</string>
+    <string name="empty_playlist">Die Playlist ist leer. Tippen Sie auf ≡, um Ordner auszuwählen.</string>
+    <string name="empty_folder">Sie haben keinen Ordner ausgewählt.</string>
+    <string name="loading">Wird geladen</string>
+    <string name="search">Suche</string>
+</resources>
