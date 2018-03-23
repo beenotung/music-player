@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">音楽プレーヤー</string>
+    <string name="action_settings">設定</string>
+    <string name="scan">目を通す</string>
+    <string name="scanning">走査</string>
+    <string name="folder">フォルダ</string>
+    <string name="select_folder">フォルダーを選択</string>
+    <string name="player">音楽プレーヤー</string>
+    <string name="settings">設定</string>
+    <string name="communicate">通じる</string>
+    <string name="share">シェア</string>
+    <string name="feedback">饋還</string>
+    <string name="waiting_media_player_service">Media Playerサービスを待つ</string>
+    <string name="ready">準備完了</string>
+    <string name="playing">奏法</string>
+    <string name="paused">一時停止中</string>
+    <string name="auto_play">自動再生</string>
+    <string name="play_in_random_order">ランダムオーダーで再生する</string>
+    <string name="about">約</string>
+    <string name="removed_from_list">リストから削除</string>
+    <string name="share_text">テキストを共有する</string>
+    <string name="reset_share_text">共有テキストをリセットする</string>
+    <string name="empty_playlist">プレイリストが空です。 フォルダを選択するには≡をタップしてください。</string>
+    <string name="empty_folder">あなたはフォルダを選択していません。</string>
+    <string name="loading">読み込み中</string>
+    <string name="search">探す</string>
+</resources>
