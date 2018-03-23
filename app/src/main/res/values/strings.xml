@@ -1,21 +1,19 @@
 <resources>
     <string name="app_name">Music Player</string>
-    <string name="version">v1.2.2</string>
+    <string name="version" translatable="false">v1.3.0</string>
 
     <!-- Strings related to Settings -->
 
     <!-- Example General settings -->
-    <string name="pref_header_general">General</string>
+    <string name="pref_header_general" translatable="false">General</string>
 
-    <string name="pref_title_social_recommendations">Enable social recommendations</string>
-    <string name="pref_description_social_recommendations">Recommendations for people to contact based on your message
-        history
-    </string>
+    <string name="pref_title_social_recommendations" translatable="false">Enable social recommendations</string>
+    <string name="pref_description_social_recommendations" translatable="false">Recommendations for people to contact based on your message history</string>
 
-    <string name="pref_title_display_name">Display name</string>
-    <string name="pref_default_display_name">John Smith</string>
+    <string name="pref_title_display_name" translatable="false">Display name</string>
+    <string name="pref_default_display_name" translatable="false">John Smith</string>
 
-    <string name="pref_title_add_friends_to_messages">Add friends to messages</string>
+    <string name="pref_title_add_friends_to_messages" translatable="false">Add friends to messages</string>
     <string-array name="pref_example_list_titles">
         <item>Always</item>
         <item>When possible</item>
@@ -28,9 +26,9 @@
     </string-array>
 
     <!-- Example settings for Data & Sync -->
-    <string name="pref_header_data_sync">Data &amp; sync</string>
+    <string name="pref_header_data_sync" translatable="false">Data &amp; sync</string>
 
-    <string name="pref_title_sync_frequency">Sync frequency</string>
+    <string name="pref_title_sync_frequency" translatable="false">Sync frequency</string>
     <string-array name="pref_sync_frequency_titles">
         <item>15 minutes</item>
         <item>30 minutes</item>
@@ -62,21 +60,21 @@
 
     <string-array name="multi_select_list_preference_default_value"/>
 
-    <string name="pref_title_system_sync_settings">System sync settings</string>
+    <string name="pref_title_system_sync_settings" translatable="false">System sync settings</string>
 
     <!-- Example settings for Notifications -->
-    <string name="pref_header_notifications">Notifications</string>
+    <string name="pref_header_notifications" translatable="false">Notifications</string>
 
-    <string name="pref_title_new_message_notifications">New message notifications</string>
+    <string name="pref_title_new_message_notifications" translatable="false">New message notifications</string>
 
-    <string name="pref_title_ringtone">Ringtone</string>
-    <string name="pref_ringtone_silent">Silent</string>
+    <string name="pref_title_ringtone" translatable="false">Ringtone</string>
+    <string name="pref_ringtone_silent" translatable="false">Silent</string>
 
-    <string name="pref_title_vibrate">Vibrate</string>
-    <string name="title_activity_main">MainActivity</string>
+    <string name="pref_title_vibrate" translatable="false">Vibrate</string>
+    <string name="title_activity_main" translatable="false">MainActivity</string>
 
-    <string name="navigation_drawer_open">Open navigation drawer</string>
-    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="navigation_drawer_open" translatable="false">Open navigation drawer</string>
+    <string name="navigation_drawer_close" translatable="false">Close navigation drawer</string>
 
     <string name="action_settings">Settings</string>
     <string name="scan">Scan</string>
@@ -92,26 +90,15 @@
     <string name="ready">Ready</string>
     <string name="playing">Playing</string>
     <string name="paused">Paused</string>
-    <string name="auto_play">Auto Play</string>
+    <string name="auto_play">Autoplay</string>
     <string name="play_in_random_order">Play in Random Order</string>
     <string name="about">About</string>
-    <string name="author">Beeno Tung</string>
+    <string name="author" translatable="false">Beeno Tung</string>
     <string name="removed_from_list">Removed From List</string>
-    <string name="default_share_text">
-        Checkout \"%1$s\" for free! You can play any music files in background :)\n
-        \n
-        Google Play:\n
-        https://play.google.com/store/apps/details?id=com.github.beenotung.musicplayer\n
-        \n
-        Direct Download:\n
-        https://github.com/beenotung/music-player/blob/master/release/music-player-release.apk?raw=true\n
-        \n
-        Website:\n
-        https://github.com/beenotung/music-player\n
-    </string>
+    <string name="default_share_text" translatable="false">"         Checkout \"%1$s\" for free! You can play any music files in background :)                    Google Play:          https://play.google.com/store/apps/details?id=com.github.beenotung.musicplayer                    Direct Download:          https://github.com/beenotung/music-player/blob/master/release/music-player-release.apk?raw=true                    Website:          https://github.com/beenotung/music-player      "</string>
     <string name="share_text">Share Text</string>
     <string name="reset_share_text">Reset share text</string>
-    <string name="empty_playlist">Playlist is empty.\nPlease tap ≡ to select folders.</string>
+    <string name="empty_playlist">Playlist is empty. Please tap ≡ to select folders.</string>
     <string name="empty_folder">You have not selected any folder.</string>
     <string name="loading">Loading</string>
     <string name="search">Search</string>

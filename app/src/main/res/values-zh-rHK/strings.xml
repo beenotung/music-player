@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">音樂播放器</string>
+    <string name="action_settings">設置</string>
+    <string name="scan">掃描</string>
+    <string name="scanning">現在掃描</string>
+    <string name="folder">資料夾</string>
+    <string name="select_folder">選擇資料夾</string>
+    <string name="player">播放器</string>
+    <string name="settings">設置</string>
+    <string name="communicate">通信</string>
+    <string name="share">分享</string>
+    <string name="feedback">反饋</string>
+    <string name="waiting_media_player_service">等待媒體播放器服務</string>
+    <string name="ready">已準備</string>
+    <string name="playing">正在播放</string>
+    <string name="paused">已暫停</string>
+    <string name="auto_play">自動播放</string>
+    <string name="play_in_random_order">以隨機順序播放</string>
+    <string name="about">關於</string>
+    <string name="removed_from_list">從列表中刪除</string>
+    <string name="share_text">分享文字</string>
+    <string name="reset_share_text">重置分享文字</string>
+    <string name="empty_playlist">播放列表是空的，請點擊 ≡ 選擇文件夾。</string>
+    <string name="empty_folder">您沒有選擇任何文件夾。</string>
+    <string name="loading">載入中</string>
+    <string name="search">搜索</string>
+</resources>
