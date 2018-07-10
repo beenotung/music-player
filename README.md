@@ -30,11 +30,15 @@ Play any supported audio format music in the background without keeping the scre
  - Prev/Next Song control from bluetooth speaker/headset
  - Custom Profile (a set of folders)
 
+## Project Status
+The author is using this app daily.
+Some minor bugs are reported and will be fixed (in low priority).
+
 ## Contact / Feedback
 Feel free to create feature requests or report bugs on https://github.com/beenotung/music-player
 
 ## License
-GPL-3.0 (GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007)
+BSD-2-Clause (The 2-Clause BSD License)
 
 ## Distribution
  - [Google Play](https://play.google.com/store/apps/details?id=com.github.beenotung.musicplayer)
