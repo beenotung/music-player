@@ -1,0 +1,8 @@
+#!/usr/bin/env node
+let fs = require('fs')
+let path = require('path')
+let json = require('../tsconfig.json')
+json.compilerOptions.jsx = 'react'
+let text = JSON.stringify(json, null, 2) + '\n'
+let file = path.join(__dirname, '..', 'tsconfig.json')
+fs.writeFileSync(file, text)
