@@ -5,6 +5,21 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Music Player</title>
+    <style>
+      .dir.selected button {
+        font-weight: bold;
+      }
+      .file {
+        padding: 0.5rem;
+        border: 1px solid black;
+      }
+      .file-name {
+        font-weight: bold;
+      }
+      .file-uri {
+        word-break: break-word;
+      }
+    </style>
   </head>
   <body>
     <h1>Music Player</h1>
@@ -14,6 +29,17 @@
     <div id="dirList">
       <div class="dir">
         <button>Data</button>
+      </div>
+    </div>
+    <hr />
+    <div id="fileList">
+      <div class="file">
+        <div>
+          <span class="file-type"></span>:
+          <span class="file-name"></span>
+        </div>
+        <div class="file-mtime"></div>
+        <div class="file-uri"></div>
       </div>
     </div>
     <script src="/js/bundle.js"></script>
