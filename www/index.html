@@ -15,8 +15,6 @@
       }
       .file-name {
         font-weight: bold;
-      }
-      .file-uri {
         word-break: break-word;
       }
     </style>
@@ -32,14 +30,18 @@
       </div>
     </div>
     <hr />
+    <div>
+      <audio id="audioNode" controls>
+    </div>
+    <hr />
     <div id="fileList">
       <div class="file">
         <div>
           <span class="file-type"></span>:
           <span class="file-name"></span>
         </div>
+        <div class="file-size"></div>
         <div class="file-mtime"></div>
-        <div class="file-uri"></div>
       </div>
     </div>
     <script src="/js/bundle.js"></script>

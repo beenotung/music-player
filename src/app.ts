@@ -3,6 +3,7 @@ import { Directory, Encoding, Filesystem } from '@capacitor/filesystem'
 
 declare var statusNode: HTMLElement
 declare var platformNode: HTMLElement
+declare var audioNode: HTMLAudioElement
 declare var dirList: HTMLInputElement
 declare var fileList: HTMLInputElement
 declare var messageNode: HTMLElement
@@ -29,16 +30,16 @@ for (let key in Directory) {
   dirList.appendChild(dirNode)
 }
 
-async function showDir(directory: Directory, path: string) {
+async function showDir(directory: Directory, dirPath: string) {
   let result = await Filesystem.readdir({
     directory,
-    path,
+    path: dirPath,
   })
   console.log('result:', result)
   fileList.innerHTML = /* html */ `
   <button>up</button>
   <p>
-    path: ${path}
+    dir: ${dirPath}
   </p>
   <p>
     ${result.files.length} files:
@@ -48,7 +49,7 @@ async function showDir(directory: Directory, path: string) {
   </div>
   `
   fileList.querySelector('button')!.onclick = function () {
-    let parts = path.split('/')
+    let parts = dirPath.split('/')
     if (parts.length > 1) {
       parts.pop()
     }
@@ -67,12 +68,25 @@ async function showDir(directory: Directory, path: string) {
     let fileNode = fileTemplate.cloneNode(true) as HTMLElement
     fileNode.querySelector('.file-type')!.textContent = file.type
     fileNode.querySelector('.file-name')!.textContent = file.name
+    fileNode.querySelector('.file-size')!.textContent =
+      file.size.toLocaleString()
     fileNode.querySelector('.file-mtime')!.textContent = new Date(
       file.mtime,
     ).toLocaleString()
-    fileNode.querySelector('.file-uri')!.textContent = file.uri
-    fileNode.onclick = function () {
-      showDir(directory, path + '/' + file.name)
+    fileNode.onclick = async function () {
+      let filePath = dirPath + '/' + file.name
+      if (file.type == 'directory') {
+        showDir(directory, filePath)
+      } else if (file.type == 'file') {
+        let mime = 'audio/' + file.name.split('.').pop()
+        console.log('mime:', mime)
+        let result = await Filesystem.readFile({
+          directory,
+          path: filePath,
+        })
+        audioNode.src = `data:${mime};base64,${result.data}`
+        audioNode.play()
+      }
     }
     Object.assign(file, { node: fileNode })
     fileList.appendChild(fileNode)
