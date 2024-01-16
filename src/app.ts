@@ -3,15 +3,20 @@ import { Directory, Encoding, Filesystem } from '@capacitor/filesystem'
 import { format_byte, format_long_short_time } from '@beenotung/tslib/format'
 
 declare var statusNode: HTMLElement
-declare var platformNode: HTMLElement
 declare var audioNode: HTMLAudioElement
 declare var videoNode: HTMLAudioElement
 declare var dirList: HTMLInputElement
 declare var fileList: HTMLInputElement
 declare var messageNode: HTMLElement
 
+let storage: {
+  viewDir: Directory
+  viewPath: string
+  palyDir: Directory
+  palyPath: string
+} = localStorage as any
+
 statusNode.textContent = 'status: loaded script'
-platformNode.textContent = Capacitor.getPlatform()
 
 audioNode.hidden = true
 videoNode.hidden = true
@@ -19,23 +24,28 @@ videoNode.hidden = true
 let dirTemplate = dirList.children[0]
 dirTemplate.remove()
 for (let key in Directory) {
+  let directory = (Directory as any)[key] as Directory
   let dirNode = dirTemplate.cloneNode(true) as HTMLElement
   let button = dirNode.querySelector('button')!
+  if (directory == storage.viewDir) {
+    dirNode.classList.add('selected')
+  }
   button.textContent = key
   button.onclick = async function () {
     let status = await Filesystem.requestPermissions()
     messageNode.textContent = 'Permission: ' + status.publicStorage
     dirList
-      .querySelectorAll('.dir')
+      .querySelectorAll('.dir.selected')
       .forEach(e => e.classList.remove('selected'))
     dirNode.classList.add('selected')
-    let directory = (Directory as any)[key]
     showDir(directory, '.')
   }
   dirList.appendChild(dirNode)
 }
 
 async function showDir(directory: Directory, dirPath: string) {
+  storage.viewDir = directory
+  storage.viewPath = dirPath
   let result = await Filesystem.readdir({
     directory,
     path: dirPath,
@@ -65,7 +75,9 @@ async function showDir(directory: Directory, dirPath: string) {
     let text = input.value.toLowerCase()
     for (let file of result.files) {
       let fileNode = (file as any).node as HTMLElement
-      fileNode.hidden = !file.name.toLowerCase().includes(text)
+      if (fileNode) {
+        fileNode.hidden = !file.name.toLowerCase().includes(text)
+      }
     }
   }
   result.files.sort((a, b) => b.mtime - a.mtime)
@@ -84,43 +96,109 @@ async function showDir(directory: Directory, dirPath: string) {
     fileNode.querySelector('.file-mtime')!.textContent = format_long_short_time(
       file.mtime,
     )
-    fileNode.onclick = async function () {
-      let filePath = dirPath + '/' + file.name
-      if (file.type == 'directory') {
-        showDir(directory, filePath)
-      } else if (file.type == 'file') {
-        audioNode.pause()
-        videoNode.pause()
-        audioNode.hidden = true
-        videoNode.hidden = true
-        let mime = (videoExts.includes(ext) ? 'video' : 'audio') + '/' + ext
-        console.log('mime:', mime)
-        let result = await Filesystem.readFile({
-          directory,
-          path: filePath,
-        })
-        if (videoExts.includes(ext)) {
-          let mime = 'video/' + ext
-          videoNode.hidden = false
-          videoNode.src = `data:${mime};base64,${result.data}`
-          videoNode.play()
-        } else {
-          let mime = 'audio/' + ext
-          audioNode.hidden = false
-          audioNode.src = `data:${mime};base64,${result.data}`
-          audioNode.play()
-        }
+
+    let filePath = dirPath + '/' + file.name
+    if (filePath == storage.palyPath) {
+      fileNode.classList.add('playing')
+    }
+
+    async function openDir() {
+      showDir(directory, filePath)
+    }
+
+    async function addDir() {}
+
+    async function addFile() {}
+
+    let playButton = fileNode.querySelector('.play-button') as HTMLButtonElement
+    let addButton = fileNode.querySelector('.add-button') as HTMLButtonElement
+
+    if (file.type === 'directory') {
+      fileNode.onclick = openDir
+    } else if (file.type === 'file') {
+      fileNode.onclick = () => {
+        fileList
+          .querySelectorAll('.file.playing')
+          .forEach(e => e.classList.remove('playing'))
+        fileNode.classList.add('playing')
+        playFile(directory, filePath, 'play')
       }
     }
+    playButton.remove()
+    addButton.remove()
+
     Object.assign(file, { node: fileNode })
     fileList.appendChild(fileNode)
   }
 }
 
-let skipExts = ['txt']
+async function playFile(
+  directory: Directory,
+  filePath: string,
+  mode: 'play' | 'select',
+) {
+  storage.palyDir = directory
+  storage.palyPath = filePath
+  audioNode.pause()
+  videoNode.pause()
+  audioNode.hidden = true
+  videoNode.hidden = true
+  let ext = filePath.split('.').pop()!
+  let mime = (videoExts.includes(ext) ? 'video' : 'audio') + '/' + ext
+  console.log('mime:', mime)
+  let result = await Filesystem.readFile({
+    directory,
+    path: filePath,
+  })
+  if (videoExts.includes(ext)) {
+    let mime = 'video/' + ext
+    videoNode.hidden = false
+    videoNode.src = `data:${mime};base64,${result.data}`
+    if (mode == 'play') {
+      videoNode.play()
+    }
+  } else {
+    let mime = 'audio/' + ext
+    audioNode.hidden = false
+    audioNode.src = `data:${mime};base64,${result.data}`
+    if (mode == 'play') {
+      audioNode.play()
+    }
+  }
+  messageNode.textContent = ''
+}
+
+audioNode.onerror = function () {
+  messageNode.textContent = audioNode.error!.message
+  fileList.querySelector('.file.playing')?.classList.add('error')
+}
+videoNode.onerror = function () {
+  messageNode.textContent = videoNode.error!.message
+  fileList.querySelector('.file.playing')?.classList.add('error')
+}
+
+let skipExts = ['txt', 'dashAudio']
 
 let videoExts = ['mp4']
 let audiosExts = ['mp3', 'm4a']
 
 let fileTemplate = fileList.children[0]
 fileTemplate.remove()
+
+function restore() {
+  {
+    let directory = storage.viewDir
+    let dirPath = storage.viewPath
+    if (directory && dirPath) {
+      showDir(directory as Directory, dirPath)
+    }
+  }
+  {
+    let directory = storage.palyDir
+    let filePath = storage.palyPath
+    if (directory && filePath) {
+      playFile(directory, filePath, 'select')
+    }
+  }
+}
+restore()

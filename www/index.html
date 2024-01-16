@@ -24,16 +24,28 @@
         padding: 0.5rem;
         border: 1px solid black;
       }
+      .file.playing {
+        background-color: bisque;
+      }
+      .file.error {
+        color: red;
+      }
       .file-name {
         font-weight: bold;
         word-break: break-word;
+      }
+      .file-buttons {
+        display: flex;
+        justify-content: space-around;
+      }
+      .file-buttons button {
+        padding: 0.5rem;
       }
     </style>
   </head>
   <body>
     <h1>Music Player</h1>
     <div id="statusNode">status: loading...</div>
-    <div id="platformNode">platform: ?</div>
     <p id="messageNode"></p>
     <div id="dirList">
       <div class="dir">
@@ -54,6 +66,10 @@
         </div>
         <div class="file-size"></div>
         <div class="file-mtime"></div>
+        <div class="file-buttons">
+          <button class="add-button">Add to List</button>
+          <button class="play-button">Play</button>
+        </div>
       </div>
     </div>
     <script src="/js/bundle.js"></script>
