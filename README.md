@@ -9,3 +9,9 @@ This revamp will use hybrid app approach.
 The UI will be implemented using DOM and Typescript, then wrapped as an app using capacitor.
 
 I try to avoid using ionic UI components and any complex framework to keep it simple.
+
+Android Setup:
+```
+<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+```

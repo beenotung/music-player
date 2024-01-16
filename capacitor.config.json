@@ -1,0 +1,8 @@
+{
+  "appId": "com.github.beenotung.musicplayer",
+  "appName": "music-player",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  }
+}
