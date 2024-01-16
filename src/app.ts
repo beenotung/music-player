@@ -1,15 +1,20 @@
 import { Capacitor } from '@capacitor/core'
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem'
+import { format_byte, format_long_short_time } from '@beenotung/tslib/format'
 
 declare var statusNode: HTMLElement
 declare var platformNode: HTMLElement
 declare var audioNode: HTMLAudioElement
+declare var videoNode: HTMLAudioElement
 declare var dirList: HTMLInputElement
 declare var fileList: HTMLInputElement
 declare var messageNode: HTMLElement
 
 statusNode.textContent = 'status: loaded script'
 platformNode.textContent = Capacitor.getPlatform()
+
+audioNode.hidden = true
+videoNode.hidden = true
 
 let dirTemplate = dirList.children[0]
 dirTemplate.remove()
@@ -65,33 +70,57 @@ async function showDir(directory: Directory, dirPath: string) {
   }
   result.files.sort((a, b) => b.mtime - a.mtime)
   for (let file of result.files) {
+    let ext = file.name.split('.').pop()!
+    if (
+      file.type === 'file' &&
+      (!file.name.includes('.') || skipExts.includes(ext))
+    ) {
+      continue
+    }
     let fileNode = fileTemplate.cloneNode(true) as HTMLElement
     fileNode.querySelector('.file-type')!.textContent = file.type
     fileNode.querySelector('.file-name')!.textContent = file.name
-    fileNode.querySelector('.file-size')!.textContent =
-      file.size.toLocaleString()
-    fileNode.querySelector('.file-mtime')!.textContent = new Date(
+    fileNode.querySelector('.file-size')!.textContent = format_byte(file.size)
+    fileNode.querySelector('.file-mtime')!.textContent = format_long_short_time(
       file.mtime,
-    ).toLocaleString()
+    )
     fileNode.onclick = async function () {
       let filePath = dirPath + '/' + file.name
       if (file.type == 'directory') {
         showDir(directory, filePath)
       } else if (file.type == 'file') {
-        let mime = 'audio/' + file.name.split('.').pop()
+        audioNode.pause()
+        videoNode.pause()
+        audioNode.hidden = true
+        videoNode.hidden = true
+        let mime = (videoExts.includes(ext) ? 'video' : 'audio') + '/' + ext
         console.log('mime:', mime)
         let result = await Filesystem.readFile({
           directory,
           path: filePath,
         })
-        audioNode.src = `data:${mime};base64,${result.data}`
-        audioNode.play()
+        if (videoExts.includes(ext)) {
+          let mime = 'video/' + ext
+          videoNode.hidden = false
+          videoNode.src = `data:${mime};base64,${result.data}`
+          videoNode.play()
+        } else {
+          let mime = 'audio/' + ext
+          audioNode.hidden = false
+          audioNode.src = `data:${mime};base64,${result.data}`
+          audioNode.play()
+        }
       }
     }
     Object.assign(file, { node: fileNode })
     fileList.appendChild(fileNode)
   }
 }
+
+let skipExts = ['txt']
+
+let videoExts = ['mp4']
+let audiosExts = ['mp3', 'm4a']
 
 let fileTemplate = fileList.children[0]
 fileTemplate.remove()
