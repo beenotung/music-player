@@ -5,8 +5,9 @@ import { format_byte, format_long_short_time } from '@beenotung/tslib/format'
 declare var statusNode: HTMLElement
 declare var audioNode: HTMLAudioElement
 declare var videoNode: HTMLAudioElement
-declare var dirList: HTMLInputElement
-declare var fileList: HTMLInputElement
+declare var playingNameNode: HTMLElement
+declare var dirList: HTMLElement
+declare var fileList: HTMLElement
 declare var messageNode: HTMLElement
 
 let storage: {
@@ -144,27 +145,27 @@ async function playFile(
   audioNode.hidden = true
   videoNode.hidden = true
   let ext = filePath.split('.').pop()!
-  let mime = (videoExts.includes(ext) ? 'video' : 'audio') + '/' + ext
+  let type = videoExts.includes(ext) ? 'video' : 'audio'
+  let mime = type + '/' + ext
   console.log('mime:', mime)
   let result = await Filesystem.readFile({
     directory,
     path: filePath,
   })
-  if (videoExts.includes(ext)) {
-    let mime = 'video/' + ext
+  if (type == 'video') {
     videoNode.hidden = false
     videoNode.src = `data:${mime};base64,${result.data}`
     if (mode == 'play') {
       videoNode.play()
     }
   } else {
-    let mime = 'audio/' + ext
     audioNode.hidden = false
     audioNode.src = `data:${mime};base64,${result.data}`
     if (mode == 'play') {
       audioNode.play()
     }
   }
+  playingNameNode.textContent = filePath.split('/').pop()!
   messageNode.textContent = ''
 }
 

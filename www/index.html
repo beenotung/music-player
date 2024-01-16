@@ -6,8 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Music Player</title>
     <style>
+      .dir {
+        display: inline-block;
+      }
+      .dir button {
+        margin: 0.25rem;
+        padding: 0.5rem;
+      }
       .player {
         display: flex;
+        flex-direction: column;
       }
       .player audio {
         width: 100%;
@@ -56,6 +64,7 @@
     <div class="player">
       <audio id="audioNode" controls></audio>
       <video id="videoNode" controls></video>
+      <div id="playingNameNode"></div>
     </div>
     <hr />
     <div id="fileList">
