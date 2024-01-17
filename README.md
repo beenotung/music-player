@@ -1,5 +1,7 @@
 # music-player
 
+An offline Android App to play musics in the background. The media files could be synced from Dropbox / DropSync.
+
 revamp using hybrid app approach.
 
 The previous native app is forced to be updated due to app store policy.
