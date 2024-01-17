@@ -10,6 +10,8 @@ The UI will be implemented using DOM and Typescript, then wrapped as an app usin
 
 I try to avoid using ionic UI components and any complex framework to keep it simple.
 
+## Modified Android Files
+
 `AndroidManifest.xml`:
 
 ```
