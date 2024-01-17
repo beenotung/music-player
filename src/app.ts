@@ -53,6 +53,7 @@ async function showDir(directory: Directory, dirPath: string) {
   })
   console.log('result:', result)
   fileList.innerHTML = /* html */ `
+<div class="mx">
   <button>up</button>
   <p>
     dir: ${dirPath}
@@ -63,6 +64,7 @@ async function showDir(directory: Directory, dirPath: string) {
   <div style="margin: 1rem 0">
     <input placeholder="search by filename"/>
   </div>
+</div>
   `
   fileList.querySelector('button')!.onclick = function () {
     let parts = dirPath.split('/')
@@ -144,8 +146,7 @@ async function playFile(
   filePath: string,
   mode: 'play' | 'select',
 ) {
-  storage.palyDir = directory
-  storage.palyPath = filePath
+  playingNameNode.textContent = filePath.split('/').pop()!
   audioNode.pause()
   videoNode.pause()
   audioNode.hidden = true
@@ -171,8 +172,9 @@ async function playFile(
       audioNode.play()
     }
   }
-  playingNameNode.textContent = filePath.split('/').pop()!
   messageNode.textContent = ''
+  storage.palyDir = directory
+  storage.palyPath = filePath
 }
 
 audioNode.onerror = function () {
@@ -204,7 +206,7 @@ function restore() {
     let directory = storage.palyDir
     let filePath = storage.palyPath
     if (directory && filePath) {
-      // playFile(directory, filePath, 'select')
+      playFile(directory, filePath, 'select')
     }
   }
 }

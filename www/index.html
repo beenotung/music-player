@@ -6,6 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Music Player</title>
     <style>
+      body {
+        margin: 0;
+      }
+      .mx {
+        margin-left: 0.5rem;
+        margin-right: 0.5rem;
+      }
       .dir {
         display: inline-block;
       }
@@ -16,6 +23,15 @@
       .player {
         display: flex;
         flex-direction: column;
+        position: sticky;
+        top: 0;
+        left: 0;
+        right: 0;
+        background-color: #c0ffee;
+        border: 1px solid black;
+      }
+      #playingNameNode {
+        padding: 0.5rem;
       }
       .player audio {
         width: 100%;
@@ -52,21 +68,19 @@
     </style>
   </head>
   <body>
-    <h1>Music Player</h1>
-    <div id="statusNode">status: loading...</div>
-    <p id="messageNode"></p>
-    <div id="dirList">
+    <h1 class="mx">Music Player</h1>
+    <div class="mx" id="statusNode">status: loading...</div>
+    <p class="mx" id="messageNode"></p>
+    <div class="mx" id="dirList">
       <div class="dir">
         <button>Data</button>
       </div>
     </div>
-    <hr />
     <div class="player">
+      <div id="playingNameNode"></div>
       <audio id="audioNode" controls></audio>
       <video id="videoNode" controls></video>
-      <div id="playingNameNode"></div>
     </div>
-    <hr />
     <div id="fileList">
       <div class="file">
         <div>
