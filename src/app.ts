@@ -101,6 +101,12 @@ async function showDir(directory: Directory, dirPath: string) {
     let filePath = dirPath + '/' + file.name
     if (filePath == storage.palyPath) {
       fileNode.classList.add('playing')
+      setTimeout(() => {
+        fileNode.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+        })
+      }, 1000)
     }
 
     async function openDir() {
@@ -198,7 +204,7 @@ function restore() {
     let directory = storage.palyDir
     let filePath = storage.palyPath
     if (directory && filePath) {
-      playFile(directory, filePath, 'select')
+      // playFile(directory, filePath, 'select')
     }
   }
 }
