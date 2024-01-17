@@ -106,7 +106,7 @@ async function showDir(directory: Directory, dirPath: string) {
           behavior: 'smooth',
           block: 'center',
         })
-      }, 1000)
+      })
     }
 
     async function openDir() {
