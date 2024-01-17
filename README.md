@@ -10,7 +10,7 @@ The UI will be implemented using DOM and Typescript, then wrapped as an app usin
 
 I try to avoid using ionic UI components and any complex framework to keep it simple.
 
-Android Setup:
+`AndroidManifest.xml`:
 
 ```
 <manifest
@@ -22,4 +22,24 @@ Android Setup:
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" tools:ignore="ScopedStorage" />
 
 </manifest>
+```
+
+`MainActivity.java`:
+
+```
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (Environment.isExternalStorageManager()) {
+                // ok
+            } else {
+                Intent newIntent = new Intent();
+                newIntent.setAction(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+                Uri uri = Uri.fromParts("package", this.getPackageName(), null);
+                newIntent.setData(uri);
+                startActivity(newIntent);
+            }
+        }
+    }
 ```
