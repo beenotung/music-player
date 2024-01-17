@@ -126,6 +126,9 @@ async function showDir(directory: Directory, dirPath: string) {
       fileNode.onclick = openDir
     } else if (file.type === 'file') {
       fileNode.onclick = () => {
+        if (playingNameNode.textContent == file.name && isPlaying()) {
+          return
+        }
         fileList
           .querySelectorAll('.file.playing')
           .forEach(e => e.classList.remove('playing'))
@@ -193,6 +196,10 @@ let audiosExts = ['mp3', 'm4a']
 
 let fileTemplate = fileList.children[0]
 fileTemplate.remove()
+
+function isPlaying() {
+  return !audioNode.paused || !videoNode.paused
+}
 
 function restore() {
   {
