@@ -54,7 +54,7 @@ async function showDir(directory: Directory, dirPath: string) {
   console.log('result:', result)
   fileList.innerHTML = /* html */ `
 <div class="mx">
-  <button>up</button>
+  <button class="up-button">up</button>
   <p>
     dir: ${dirPath}
   </p>
@@ -66,13 +66,14 @@ async function showDir(directory: Directory, dirPath: string) {
   </div>
 </div>
   `
-  fileList.querySelector('button')!.onclick = function () {
-    let parts = dirPath.split('/')
-    if (parts.length > 1) {
-      parts.pop()
+  fileList.querySelector<HTMLButtonElement>('.up-button')!.onclick =
+    function () {
+      let parts = dirPath.split('/')
+      if (parts.length > 1) {
+        parts.pop()
+      }
+      showDir(directory, parts.join('/'))
     }
-    showDir(directory, parts.join('/'))
-  }
   let input = fileList.querySelector('input')!
   input.oninput = function () {
     let text = input.value.toLowerCase()
@@ -93,13 +94,6 @@ async function showDir(directory: Directory, dirPath: string) {
       continue
     }
     let fileNode = fileTemplate.cloneNode(true) as HTMLElement
-    fileNode.querySelector('.file-type')!.textContent = file.type
-    fileNode.querySelector('.file-name')!.textContent = file.name
-    fileNode.querySelector('.file-size')!.textContent = format_byte(file.size)
-    fileNode.querySelector('.file-mtime')!.textContent = format_long_short_time(
-      file.mtime,
-    )
-
     let filePath = dirPath + '/' + file.name
     if (filePath == storage.palyPath) {
       fileNode.classList.add('playing')
@@ -110,6 +104,21 @@ async function showDir(directory: Directory, dirPath: string) {
         })
       })
     }
+    fileNode.querySelector('.file-type')!.textContent = file.type
+    fileNode.querySelector('.file-name')!.textContent = file.name
+    let fileMetaNode = fileNode.querySelector('.file-meta')!
+    if (file.type == 'file') {
+      fileMetaNode.textContent = format_byte(file.size)
+    } else if (file.type == 'directory') {
+      let { files } = await Filesystem.readdir({
+        directory,
+        path: filePath,
+      })
+      fileMetaNode.textContent = files.length + ' files'
+    }
+    fileNode.querySelector('.file-mtime')!.textContent = format_long_short_time(
+      file.mtime,
+    )
 
     async function openDir() {
       showDir(directory, filePath)
