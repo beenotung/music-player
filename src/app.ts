@@ -1,4 +1,3 @@
-import { Capacitor } from '@capacitor/core'
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem'
 import { format_byte, format_long_short_time } from '@beenotung/tslib/format'
 
@@ -165,7 +164,18 @@ async function playFile(
   videoNode.hidden = true
   let ext = filePath.split('.').pop()!
   let type = videoExts.includes(ext) ? 'video' : 'audio'
-  let mime = type + '/' + ext
+  let mime: string
+  switch (ext) {
+    case 'm4a':
+      mime = 'audio/mp4'
+      break
+    case '3gp':
+      mime = 'video/3gpp'
+      break
+    default:
+      mime = type + '/' + ext
+  }
+
   console.log('mime:', mime)
   let result = await Filesystem.readFile({
     directory,
@@ -200,7 +210,7 @@ videoNode.onerror = function () {
 
 let skipExts = ['txt', 'dashAudio']
 
-let videoExts = ['mp4']
+let videoExts = ['mp4', '3gp']
 let audiosExts = ['mp3', 'm4a']
 
 let fileTemplate = fileList.children[0]
