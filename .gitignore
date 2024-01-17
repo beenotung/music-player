@@ -11,3 +11,4 @@ dist/
 .DS_Store
 www/js/
 android/
+resources/

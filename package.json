@@ -8,6 +8,7 @@
     "test": "tsc --noEmit",
     "build": "esbuild src/app.ts --bundle --outfile=www/js/bundle.js",
     "android": "npm run build && cap copy android",
+    "gen-icons": "cordova-res --skip-config --copy",
     "type-check": "tsc -p . --noEmit"
   },
   "keywords": [],
@@ -22,6 +23,7 @@
     "@capacitor/android": "^5.6.0",
     "@capacitor/cli": "^5.6.0",
     "@types/node": "^20.11.4",
+    "cordova-res": "^0.15.4",
     "esbuild": "^0.19.11",
     "serve-lite": "^1.2.1",
     "ts-node": "^10.9.2",
