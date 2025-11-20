@@ -1,3 +1,4 @@
+import { Capacitor } from '@capacitor/core'
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem'
 import { format_byte, format_long_short_time } from '@beenotung/tslib/format'
 
@@ -177,19 +178,25 @@ async function playFile(
   }
 
   console.log('mime:', mime)
-  let result = await Filesystem.readFile({
+  // Use getUri() instead of readFile() to avoid loading entire file into memory
+  // This allows streaming large files instead of base64 data URLs
+  let uriResult = await Filesystem.getUri({
     directory,
     path: filePath,
   })
+  // Convert file URI to a safe URL that browsers can load
+  // This is necessary to bypass security restrictions on file:// URLs
+  let fileUrl = Capacitor.convertFileSrc(uriResult.uri)
+
   if (type == 'video') {
     videoNode.hidden = false
-    videoNode.src = `data:${mime};base64,${result.data}`
+    videoNode.src = fileUrl
     if (mode == 'play') {
       videoNode.play()
     }
   } else {
     audioNode.hidden = false
-    audioNode.src = `data:${mime};base64,${result.data}`
+    audioNode.src = fileUrl
     if (mode == 'play') {
       audioNode.play()
     }
